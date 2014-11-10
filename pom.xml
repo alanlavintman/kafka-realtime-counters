@@ -16,6 +16,30 @@
 
     <dependencies>
 
+        <!-- Streaming -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.10</artifactId>
+            <version>0.8.1</version>
+        </dependency>
+
+        <!--
+            The following are a set of must dependencies of every project.
+        -->
+
+        <!-- Metrics -->
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+        <!-- Collections/ IO Utils and other utility classes. -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
 
         <!-- Logging services -->
         <dependency>
@@ -37,22 +61,15 @@
             <version>1.10</version>
         </dependency>
 
-        <!-- Streaming -->
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-            <version>0.8.1</version>
-        </dependency>
+        <!-- Json Serizliation -->
 
-        <!-- Metrics -->
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>3.1.0</version>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.13</version>
         </dependency>
 
         <!-- Aggregator storage -->
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

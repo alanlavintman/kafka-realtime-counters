@@ -8,6 +8,13 @@
     </JAVADOC>
     <SOURCES>
       <root url="jar://$MAVEN_REPOSITORY$/org/apache/kafka/kafka_2.10/0.8.1/kafka_2.10-0.8.1-sources.jar!/" />
+      <root url="file://$PROJECT_DIR$/../../../kafka/core/src/main/scala" />
+      <root url="file://$PROJECT_DIR$/../../../kafka/clients/src/main/java" />
+      <root url="file://$PROJECT_DIR$/../../../kafka/clients/src/test/java" />
+      <root url="file://$PROJECT_DIR$/../../../kafka/contrib/hadoop-consumer/src/main/java" />
+      <root url="file://$PROJECT_DIR$/../../../kafka/contrib/hadoop-producer/src/main/java" />
+      <root url="file://$PROJECT_DIR$/../../../kafka/examples/src/main/java" />
+      <root url="file://$PROJECT_DIR$/../../../kafka" />
     </SOURCES>
   </library>
 </component>

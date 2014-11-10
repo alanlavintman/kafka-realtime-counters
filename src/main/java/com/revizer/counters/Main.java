@@ -1,8 +1,7 @@
 package com.revizer.counters;
 
-import com.revizer.counters.services.CounterService;
-import com.revizer.counters.services.MetricsService;
-import com.revizer.counters.services.StreamService;
+import com.revizer.counters.services.ServiceFactory;
+import com.revizer.counters.services.metrics.MetricsService;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -20,36 +19,27 @@ public class Main {
 
         logger.info("Initializing revizer real time counters service.");
 
-        Configuration configuration = null;
-        StreamService streamService = null;
-        CounterService counterService = null;
-        MetricsService metricsService = null;
-
         try {
-            /* Low level dependencies, configuration and metrics. */
-            configuration = new PropertiesConfiguration("rt.properties");
-            metricsService = new MetricsService(configuration);
 
-            /* Main business services, the one who brings the stream, and the one who counts and flush. */
-            counterService = new CounterService(configuration, metricsService);
-            streamService = new StreamService(configuration, metricsService, counterService);
+            /* Initialize the basic 2 components of the system: configuration + metrics*/
+            Configuration configuration = new PropertiesConfiguration("rt.properties");
+            MetricsService metricsService = new MetricsService(configuration);
 
-            streamService.start();
+            final ServiceFactory serviceFactory = new ServiceFactory(configuration, metricsService);
+            final CountingSystem countingSystem = new CountingSystem(serviceFactory);
 
-
-            final StreamService finalStreamService = streamService;
             Runtime.getRuntime().addShutdownHook(new Thread() {
-                    @Override
-                    public void run() {
-                        finalStreamService.stop();
-                    }
-                });
+                @Override
+                public void run() {
+                    countingSystem.stop();
+                }
+            });
 
+            countingSystem.start();
 
         } catch (ConfigurationException e) {
-            logger.error("There was an error while trying to make an instance of ConfigurationService", e);
+            logger.error("There was an error while trying to initialize the counting system.", e);
         }
-
 
     }
 

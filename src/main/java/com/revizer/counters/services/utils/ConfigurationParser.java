@@ -3,6 +3,7 @@ package com.revizer.counters.services.utils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.primitives.Ints;
+import com.revizer.counters.services.counting.model.Counter;
 import org.apache.commons.configuration.Configuration;
 
 import java.util.*;
@@ -11,6 +12,8 @@ import java.util.*;
  * Created by alanl on 11/10/14.
  */
 public class ConfigurationParser {
+
+    private static String COUNTERS_CONFIGURATION_KEYS_STARTS_WITH="counters.counter.";
 
     public static Map<String, Integer> getTopicAndNumOfStreams(Configuration configuration){
         String[] topicsSplit = configuration.getStringArray("streaming.kafka.topics");
@@ -53,4 +56,21 @@ public class ConfigurationParser {
         return returnKeys;
     }
 
+    public static Map<String, List<Counter>> getCountersByTopic(Configuration configuration) {
+        Map<String, List<Counter>> counters = new HashMap<String, List<Counter>>();
+        Map<String, Integer> topicAndNumOfStreams = getTopicAndNumOfStreams(configuration);
+        for (String topic : topicAndNumOfStreams.keySet()) {
+            String keyRetrival = COUNTERS_CONFIGURATION_KEYS_STARTS_WITH.concat(topic).concat(".");
+            List<String> countersKeys = getKeysThatStartsWith(configuration, keyRetrival);
+            for (String counterKey : countersKeys) {
+                String counterName = counterKey.substring(keyRetrival.length());
+                String[] fields = configuration.getStringArray(counterName);
+                Counter counter = new Counter(counterName, fields);
+                counters
+            }
+
+
+
+        }
+    }
 }

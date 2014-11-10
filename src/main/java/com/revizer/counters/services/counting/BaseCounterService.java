@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public abstract class BaseCounterService implements CounterService {
 
-    private static String COUNTERS_CONFIGURATION_KEYS_STARTS_WITH="counters.counter.";
+
     private Configuration configuration;
     private MetricsService metricsService;
     private CounterTopicMetadata counterTopicMetadata;
@@ -32,7 +32,7 @@ public abstract class BaseCounterService implements CounterService {
         CounterTopicMetadata counterTopic = new CounterTopicMetadata();
         counterTopic.setTopicStreamsMap(ConfigurationParser.getTopicAndNumOfStreams(configuration));
         counterTopic.setTopicNowField(ConfigurationParser.getTopicNowField(configuration));
-        counterTopic.setTopicCounters(stringCountersMap);
+        counterTopic.setTopicCounters(ConfigurationParser.getCountersByTopic(configuration));
         return counterTopic;
     }
 

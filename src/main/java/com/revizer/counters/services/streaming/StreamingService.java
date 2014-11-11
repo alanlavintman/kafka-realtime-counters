@@ -15,16 +15,21 @@ import java.util.List;
 public abstract class StreamingService {
 
     private static Logger logger = LoggerFactory.getLogger(StreamingService.class);
+
     private Configuration configuration;
     private MetricsService metricsService;
     private List<StreamServiceListener> listeners = new ArrayList<StreamServiceListener>();
 
-    public List<StreamServiceListener> getListeners() {
-        return new ArrayList<StreamServiceListener>(listeners);
-    }
-
     public Configuration getConfiguration() {
         return configuration;
+    }
+
+    public MetricsService getMetricsService() {
+        return metricsService;
+    }
+
+    public List<StreamServiceListener> getListeners() {
+        return new ArrayList<StreamServiceListener>(listeners);
     }
 
     public StreamingService(Configuration configuration, MetricsService metricsService) {

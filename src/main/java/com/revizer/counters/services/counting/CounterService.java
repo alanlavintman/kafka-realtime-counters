@@ -7,11 +7,7 @@ import org.codehaus.jackson.JsonNode;
  */
 public interface CounterService {
 
-    void process(JsonNode payload);
-
-    void process(String payload);
-
-    void process(byte[] payload);
+    void process(String payload, JsonNode jsonNode);
 
     void start();
 

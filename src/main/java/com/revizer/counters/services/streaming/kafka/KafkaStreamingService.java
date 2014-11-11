@@ -79,7 +79,8 @@ public class KafkaStreamingService extends StreamingService {
         for (Map.Entry<String, List<KafkaStream<byte[], byte[]>>> topicStreamMap : messageStreams.entrySet()) {
             List<KafkaStream<byte[], byte[]>> streamList = topicStreamMap.getValue();
             for (KafkaStream<byte[], byte[]> stream : streamList) {
-                executor.submit(new KafkaStreamingHandler(topicStreamMap.getKey(), stream, threadNumber, this.messageDecoder, this.getListeners()));
+                String topicName = topicStreamMap.getKey();
+                executor.submit(new KafkaStreamingHandler(this.getConfiguration(), this.getMetricsService(), topicName, stream, threadNumber, this.messageDecoder, this.getListeners()));
                 threadNumber++;
             }
         }

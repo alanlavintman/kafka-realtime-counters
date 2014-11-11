@@ -3,7 +3,7 @@ package com.revizer.counters.services.utils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.primitives.Ints;
-import com.revizer.counters.services.counting.model.Counter;
+import com.revizer.counters.services.counting.model.AggregationCounter;
 import org.apache.commons.configuration.Configuration;
 
 import java.util.*;
@@ -14,6 +14,8 @@ import java.util.*;
 public class ConfigurationParser {
 
     private static String COUNTERS_CONFIGURATION_KEYS_STARTS_WITH="counters.counter.";
+    private static String DEFAULT_NOW_FIELD="now";
+
 
     public static Map<String, Integer> getTopicAndNumOfStreams(Configuration configuration){
         String[] topicsSplit = configuration.getStringArray("streaming.kafka.topics");
@@ -33,13 +35,12 @@ public class ConfigurationParser {
     }
 
     public static Map<String, String> getTopicNowField(Configuration configuration){
-        String startsWith = "counters.topic.timefield.";
+        Map<String, Integer> topicAndNumOfStreams = getTopicAndNumOfStreams(configuration);
         Map<String, String> topicMapField = new HashMap<String, String>();
-        List<String> keys = getKeysThatStartsWith(configuration, startsWith);
-        for (String key : keys) {
-            String nowField = configuration.getString(key);
-            String topic = key.substring(startsWith.length());
-            topicMapField.put(topic, nowField) ;
+        for (String topic : topicAndNumOfStreams.keySet()) {
+            String nowFieldKey = "counters.topic.timefield." + topic;
+            String nowField = configuration.getString(nowFieldKey, DEFAULT_NOW_FIELD);
+            topicMapField.put(topic, nowField);
         }
         return topicMapField;
     }
@@ -56,21 +57,21 @@ public class ConfigurationParser {
         return returnKeys;
     }
 
-    public static Map<String, List<Counter>> getCountersByTopic(Configuration configuration) {
-        Map<String, List<Counter>> counters = new HashMap<String, List<Counter>>();
+    public static Map<String, List<AggregationCounter>> getCountersByTopic(Configuration configuration) {
+        Map<String, List<AggregationCounter>> counters = new HashMap<String, List<AggregationCounter>>();
         Map<String, Integer> topicAndNumOfStreams = getTopicAndNumOfStreams(configuration);
         for (String topic : topicAndNumOfStreams.keySet()) {
+            List<AggregationCounter> counterList = new ArrayList<AggregationCounter>();
             String keyRetrival = COUNTERS_CONFIGURATION_KEYS_STARTS_WITH.concat(topic).concat(".");
             List<String> countersKeys = getKeysThatStartsWith(configuration, keyRetrival);
             for (String counterKey : countersKeys) {
                 String counterName = counterKey.substring(keyRetrival.length());
-                String[] fields = configuration.getStringArray(counterName);
-                Counter counter = new Counter(counterName, fields);
-                counters
+                String[] fields = configuration.getStringArray(counterKey);
+                AggregationCounter counter = new AggregationCounter(counterName, fields);
+                counterList.add(counter);
             }
-
-
-
+            counters.put(topic,counterList);
         }
+        return counters;
     }
 }

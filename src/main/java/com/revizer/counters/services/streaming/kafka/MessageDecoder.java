@@ -1,6 +1,8 @@
 package com.revizer.counters.services.streaming.kafka;
 
 import com.revizer.counters.services.metrics.MetricsService;
+import com.revizer.counters.services.streaming.exceptions.InitializeDecoderException;
+import com.revizer.counters.services.streaming.exceptions.MessageDecoderException;
 import org.apache.commons.configuration.Configuration;
 
 /**
@@ -8,7 +10,7 @@ import org.apache.commons.configuration.Configuration;
  */
 public interface MessageDecoder<T> {
 
-    T decode(byte[] message);
+    T decode(byte[] message) throws MessageDecoderException;
 
     void initialize(Configuration configuration, MetricsService service) throws InitializeDecoderException;
 

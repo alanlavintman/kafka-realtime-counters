@@ -77,8 +77,8 @@
       <file leaf-file-name="JsonCounterServiceTest.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/test/java/com/revizer/counters/JsonCounterServiceTest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.7804878" vertical-offset="2025" max-vertical-offset="3450">
-              <caret line="184" column="5" selection-start-line="184" selection-start-column="5" selection-end-line="184" selection-end-column="5" />
+            <state vertical-scroll-proportion="0.17073171" vertical-offset="0" max-vertical-offset="3450">
+              <caret line="24" column="13" selection-start-line="24" selection-start-column="13" selection-end-line="24" selection-end-column="31" />
               <folding>
                 <element signature="e#3814#4074#0" expanded="true" />
                 <element signature="e#4059#4060#0" expanded="true" />
@@ -1326,8 +1326,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/com/revizer/counters/JsonCounterServiceTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7804878" vertical-offset="2025" max-vertical-offset="3450">
-          <caret line="184" column="5" selection-start-line="184" selection-start-column="5" selection-end-line="184" selection-end-column="5" />
+        <state vertical-scroll-proportion="0.17073171" vertical-offset="0" max-vertical-offset="3450">
+          <caret line="24" column="13" selection-start-line="24" selection-start-column="13" selection-end-line="24" selection-end-column="31" />
           <folding>
             <element signature="e#3814#4074#0" expanded="true" />
             <element signature="e#4059#4060#0" expanded="true" />

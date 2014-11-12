@@ -2,7 +2,7 @@ package com.revizer.counters.services.streaming.kafka;
 
 import com.revizer.counters.services.metrics.MetricsService;
 import com.revizer.counters.services.streaming.StreamingService;
-import com.revizer.counters.services.utils.ConfigurationParser;
+import com.revizer.counters.utils.ConfigurationParser;
 import kafka.consumer.*;
 import kafka.javaapi.consumer.ConsumerConnector;
 import org.apache.commons.configuration.Configuration;

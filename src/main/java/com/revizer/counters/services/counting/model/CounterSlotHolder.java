@@ -1,5 +1,8 @@
 package com.revizer.counters.services.counting.model;
 
+import com.codahale.metrics.Meter;
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,14 +15,24 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class CounterSlotHolder {
 
-    private ConcurrentSkipListMap<Long, ConcurrentHashMap<AggregationCounterKey, AtomicLong>> slotHolder = new ConcurrentSkipListMap<Long, ConcurrentHashMap<AggregationCounterKey, AtomicLong>>();
+    private ConcurrentSkipListMap<Integer, ConcurrentHashMap<AggregationCounterKey, AtomicLong>> slotHolder = new ConcurrentSkipListMap<Integer, ConcurrentHashMap<AggregationCounterKey, AtomicLong>>();
+
+    public ConcurrentSkipListMap<Integer, ConcurrentHashMap<AggregationCounterKey, AtomicLong>> getSlotHolder() {
+        return slotHolder;
+    }
 
     public CounterSlotHolder() {
 
     }
 
-    public void inc(Long now, AggregationCounterKey key) {
-        Long minuteOfDay = now/60;
+    /**
+     *
+     * @param eventNow
+     * @param key
+     */
+    public void inc(Long eventNow, AggregationCounterKey key) {
+        DateTime jodaTime = new DateTime(eventNow*1000);
+        int minuteOfDay = jodaTime.getMinuteOfDay();
         slotHolder.putIfAbsent(minuteOfDay, new ConcurrentHashMap<AggregationCounterKey, AtomicLong>());
         ConcurrentHashMap<AggregationCounterKey, AtomicLong> aggregationCounterKeyAtomicLongConcurrentHashMap = slotHolder.get(minuteOfDay);
         aggregationCounterKeyAtomicLongConcurrentHashMap.putIfAbsent(key, new AtomicLong());
@@ -27,14 +40,11 @@ public class CounterSlotHolder {
         counter.incrementAndGet();
     }
 
-    public List<ConcurrentHashMap<AggregationCounterKey, AtomicLong>> pruneLastSlot(Long since){
-        List<ConcurrentHashMap<AggregationCounterKey, AtomicLong>> listOfSlots = new ArrayList<ConcurrentHashMap<AggregationCounterKey, AtomicLong>>();
-        /* Start by removing the */
-        for (int i=0;i<10;i++){
-            Long firstKey = slotHolder.firstKey();
-            listOfSlots.add(slotHolder.remove(firstKey));
-        }
-        return listOfSlots;
+    public ConcurrentHashMap<AggregationCounterKey, AtomicLong> cleanOlderSlot(){
+        /* Start by removing the older 10 items. */
+        Integer firstKey = slotHolder.firstKey();
+        ConcurrentHashMap<AggregationCounterKey, AtomicLong> remove = slotHolder.remove(firstKey);
+        return remove;
     }
 
 }

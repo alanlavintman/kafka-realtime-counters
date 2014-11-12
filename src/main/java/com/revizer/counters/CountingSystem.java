@@ -25,7 +25,7 @@ public class CountingSystem {
         counterService.start();
 
         // Later on start the streaming service so it can start counting.
-//        streamingService.start();
+        streamingService.start();
     }
 
     public void stop(){

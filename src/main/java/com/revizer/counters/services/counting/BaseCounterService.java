@@ -2,11 +2,8 @@ package com.revizer.counters.services.counting;
 
 import com.revizer.counters.services.counting.model.*;
 import com.revizer.counters.services.metrics.MetricsService;
-import com.revizer.counters.services.utils.ConfigurationParser;
+import com.revizer.counters.utils.ConfigurationParser;
 import org.apache.commons.configuration.Configuration;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import org.codehaus.jackson.JsonNode;
 
 import java.util.HashMap;
 import java.util.Map;

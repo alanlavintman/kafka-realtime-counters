@@ -1,5 +1,6 @@
 package com.revizer.counters.services.counting;
 
+import com.codahale.metrics.Timer;
 import com.revizer.counters.services.counting.model.AggregationCounter;
 import com.revizer.counters.services.counting.model.AggregationCounterKey;
 import com.revizer.counters.services.counting.model.CounterSlotHolder;
@@ -17,16 +18,33 @@ import java.util.List;
  */
 public class JsonCounterService extends BaseCounterService {
 
+    private Timer processTimer;
+    private boolean processCounterService = true;
+
     private static Logger logger = LoggerFactory.getLogger(JsonCounterService.class);
 
     public JsonCounterService(Configuration configuration, MetricsService metricsService) {
         super(configuration, metricsService);
+        this.processCounterService = this.getConfiguration().getBoolean("counters.configuration.process.counter.service",false);
+        if (this.processCounterService){
+            this.processTimer = this.getMetricsService().createTimer(BaseCounterService.class,"aggregation-key-generation");
+        }
     }
 
+    /**
+     * The process method is in charge of incrementing a value for a certain topic and payload.
+     * It will run all the aggregations
+     * @param topic
+     * @param payload
+     */
     @Override
     public void process(String topic, JsonNode payload) {
+        Timer.Context time = null;
+        if (this.processTimer != null){
+            time = this.processTimer.time();
+        }
         /* Get the now parameter */
-        Long now = getNowField(topic, payload);
+        Long eventNow = getNowField(topic, payload);
 
         /* Gets the counter slot holder for the topic of the event. */
         CounterSlotHolder counterSlotHolder = this.getCountersSlotHolder().get(topic);
@@ -36,19 +54,24 @@ public class JsonCounterService extends BaseCounterService {
         for (AggregationCounter aggregationCounter : aggregationCounters) {
             try {
                 /* For each aggregation get the key and increment in the counter slot holder. */
-                AggregationCounterKey key = aggregationCounter.getCounterKey(now, payload);
-                counterSlotHolder.inc(now, key);
+                List<AggregationCounterKey> key = aggregationCounter.getCounterKey(eventNow, payload);
+                for (AggregationCounterKey aggregationCounterKey : key) {
+                    counterSlotHolder.inc(eventNow, aggregationCounterKey);
+                }
             } catch(Exception ex){
                 logger.error("There was an error while trying to increment the values for the event: {}", payload.toString(), ex);
             }
+        }
+        if (time != null){
+            time.stop();
         }
     }
 
     /**
      * Gets the now field in seconds.
-     * @param topic
-     * @param payload
-     * @return
+     * @param topic The topic we are currently about to evaluate.
+     * @param payload The payload that contains the fields we need to search for.
+     * @return A Long value containing the value of the topic.
      */
     public Long getNowField(String topic, JsonNode payload){
         String nowField = this.getCounterTopicAggregator().getTopicNowField().get(topic);

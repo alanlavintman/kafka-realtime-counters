@@ -86,9 +86,11 @@ public class AggregationCounterTest extends BaseCounterTest{
             }
             long end = System.currentTimeMillis();
             total = end-start;
-            System.out.println("Testing 20 aggregations, time spent: " + String.valueOf(total));
         }
-        System.out.println("Average: " + String.valueOf(total/100));
+
+        long value = total/100;
+        System.out.println("Average: " + String.valueOf(value));
+        Assert.assertTrue(value <= 1L); // Assert that this process should take less than 1 millisecond.
 
 
         long start = System.currentTimeMillis();
@@ -98,7 +100,10 @@ public class AggregationCounterTest extends BaseCounterTest{
             Assert.assertEquals(counterKey.size(),1);
         }
         long end = System.currentTimeMillis();
-        System.out.println("Testing 100 aggregations, time spent: " + String.valueOf(end-start));
+        value = end-start;
+        System.out.println("Testing 100 aggregations, time spent: " + String.valueOf(value));
+        Assert.assertTrue(value <= 1L); // Assert that this process should take less than 1 millisecond.
+
 
 
         start = System.currentTimeMillis();
@@ -108,7 +113,9 @@ public class AggregationCounterTest extends BaseCounterTest{
             Assert.assertEquals(counterKey.size(),1);
         }
         end = System.currentTimeMillis();
-        System.out.println("Testing 500 aggregations, time spent: " + String.valueOf(end-start));
+        value = end-start;
+        System.out.println("Testing 500 aggregations, time spent: " + String.valueOf(value));
+        Assert.assertTrue(value <= 5L); // Assert that this process should take less than 1 millisecond.
 
 
         start = System.currentTimeMillis();
@@ -118,7 +125,10 @@ public class AggregationCounterTest extends BaseCounterTest{
             Assert.assertEquals(counterKey.size(),1);
         }
         end = System.currentTimeMillis();
-        System.out.println("Testing 1000 aggregations, time spent: " + String.valueOf(end-start));
+        value = end-start;
+        System.out.println("Testing 1000 aggregations, time spent: " + String.valueOf(value));
+        Assert.assertTrue(value <= 10L); // Assert that this process should take less than 1 millisecond.
+
 
     }
 

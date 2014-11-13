@@ -118,7 +118,7 @@
             </plugin>
 
             <!--Prepare a shaded jar for production-->
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

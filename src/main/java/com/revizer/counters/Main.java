@@ -22,10 +22,12 @@ public class Main {
         try {
 
             /* Initialize the basic 2 components of the system: configuration + metrics*/
+            // Check if there is an argument, if there is, use that instead of the hardcoded load from the classpath.
             Configuration configuration = new PropertiesConfiguration("rt.properties");
             MetricsService metricsService = new MetricsService(configuration);
 
             final ServiceFactory serviceFactory = new ServiceFactory(configuration, metricsService);
+
             final CountingSystem countingSystem = new CountingSystem(serviceFactory);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {

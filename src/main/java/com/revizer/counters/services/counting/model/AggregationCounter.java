@@ -36,6 +36,33 @@ public class AggregationCounter {
      * @return A reference to a {@link List<AggregationCounterKey>}, The result is a list because we want to offer
      * the flexibility to do two things:
      *
+     * If i have a counter:
+     * aff,subaff,country
+     * And i have an event now of: 12345678412 (Lets say its DAY 20141101)
+     * And i have an event:
+     * {aff:123,subaff:3456, country: IL}
+     *      *
+     * The return value of this method call is and instance of AggregationCounterKey
+     * with fields:
+     * counterKey: 123.3456.IL
+     * DAY: 20141101
+     *
+     *
+     * TODO: Very important, support array columns
+     * If i have a counter: aff,subaff,revmods
+     * And i have an event now of: 12345678412 (Lets say its DAY 20141101)
+     * And i have an event:
+     * {aff:123,subaff:3456, revmods: ['a','b']}
+     *
+     * The return value of this method call is and instance of a list of 2 AggregationCounterKey
+     * 1)
+     * counterKey: 123.3456.a
+     * DAY: 20141101
+     *
+     * 2)
+     * counterKey: 123.3456.b
+     * DAY: 20141101
+     *
      * 1) Support hirerachy counters, if you pass affid, subaffid, country
      * i would like to increment:
      * affid

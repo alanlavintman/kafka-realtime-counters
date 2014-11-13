@@ -26,7 +26,7 @@ public class KafkaJsonMessageDecoder implements MessageDecoder<JsonNode> {
         try {
             String stringMessage = new String(message, "UTF-8");
             JsonNode node = mapper.readTree(stringMessage);
-            return null;
+            return node;
         } catch (UnsupportedEncodingException e) {
             failedDecoderStringMeter.mark();
             throw new MessageDecoderException(e);

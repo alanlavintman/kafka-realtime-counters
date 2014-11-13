@@ -89,6 +89,20 @@
             <version>2.5</version>
         </dependency>
 
+        <!-- Cassandra Driver -->
+
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>2.1.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.cassandraunit</groupId>
+            <artifactId>cassandra-unit</artifactId>
+            <version>2.0.2.2</version>
+        </dependency>
+
 
         <!-- Aggregator storage -->
         <dependency>

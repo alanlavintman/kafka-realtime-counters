@@ -44,7 +44,8 @@ public class KafkaStreamingService extends StreamingService {
         Map<String, Integer> topicAndNumOfStreams = ConfigurationParser.getTopicAndNumOfStreams(configuration);
         for (Integer numOfStreams : topicAndNumOfStreams.values()) {
             this.parallelism += numOfStreams;
-        } return topicAndNumOfStreams;
+        }
+        return topicAndNumOfStreams;
     }
 
     /**
@@ -89,7 +90,7 @@ public class KafkaStreamingService extends StreamingService {
 
     @Override
     public void stop() {
-
+        //TODO: Build the stop !!!
     }
 
 

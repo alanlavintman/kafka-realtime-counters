@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * This is the timeline !
  * Created by alanl on 11/11/14.
  */
 public class CounterSlotHolder {
@@ -40,10 +41,14 @@ public class CounterSlotHolder {
         counter.incrementAndGet();
     }
 
-    public ConcurrentHashMap<AggregationCounterKey, AtomicLong> cleanOlderSlot(){
-        /* Start by removing the older 10 items. */
-        Integer firstKey = slotHolder.firstKey();
-        ConcurrentHashMap<AggregationCounterKey, AtomicLong> remove = slotHolder.remove(firstKey);
+    public Integer getOlderSlotKey(){
+        return slotHolder.firstKey();
+    }
+
+    public ConcurrentHashMap<AggregationCounterKey, AtomicLong> removeSlot(Integer key){
+
+        /* Start by removing the older item. */
+        ConcurrentHashMap<AggregationCounterKey, AtomicLong> remove = slotHolder.remove(key);
         return remove;
     }
 

@@ -8,9 +8,10 @@ import java.util.Map;
  */
 public class CounterTopicAggregator {
 
+    // Give me information per topic.
     private Map<String, Integer> topicStreamsMap = null;
     private Map<String, String> topicNowField = null;
-    private Map<String, List<AggregationCounter>> topicCounters = null; // for each topic you have a list of counters.
+    private Map<String, List<AggregationCounter>> topicCounters = null; // for each topic you have a list of counters or aggregations.
 
     public Map<String, Integer> getTopicStreamsMap() {
         return topicStreamsMap;

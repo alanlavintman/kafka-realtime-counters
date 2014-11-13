@@ -115,7 +115,7 @@ public class AggregationCounterTest extends BaseCounterTest{
         end = System.currentTimeMillis();
         value = end-start;
         System.out.println("Testing 500 aggregations, time spent: " + String.valueOf(value));
-        Assert.assertTrue(value <= 15L); // Assert that this process should take less than 1 millisecond.
+        Assert.assertTrue(value <= 20L); // Assert that this process should take less than 1 millisecond.
 
 
         start = System.currentTimeMillis();
@@ -127,7 +127,7 @@ public class AggregationCounterTest extends BaseCounterTest{
         end = System.currentTimeMillis();
         value = end-start;
         System.out.println("Testing 1000 aggregations, time spent: " + String.valueOf(value));
-        Assert.assertTrue(value <= 20L); // Assert that this process should take less than 1 millisecond.
+        Assert.assertTrue(value <= 30L); // Assert that this process should take less than 1 millisecond.
 
 
     }

@@ -67,7 +67,17 @@ public class CassandraCounterRepository implements CounterRepository {
         this.cassandraPorts = cassandraPorts;
     }
 
-    public void startupScript(){
+    public void initializeSchema(){
+
+        this.getSession().execute("CREATE KEYSPACE counters WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };");
+
+        this.getSession().execute("CREATE TABLE counters.time_series_minute (\n" +
+                "    lookup_key text,\n" +
+                "    date text,\n" +
+                "    slot int,\n" +
+                "    value counter,\n" +
+                "PRIMARY KEY((lookup_key,date),slot),\n" +
+                ") WITH CLUSTERING ORDER BY (slot DESC);");
 
     }
 
@@ -77,15 +87,6 @@ public class CassandraCounterRepository implements CounterRepository {
         cassandraPorts = configuration.getInt("counters.repository.cassandra.port");
         reconnectionPolicy = configuration.getLong("counters.repository.cassandra.reconnection.policy");
         flushSize = configuration.getInt("counters.repository.cassandra.flush.size");
-        /*
-        Since Version of cassandra 2.1 use BEGIN UNLOGGED BATCH.
-        BEGIN UNLOGGED BATCH
-            INSERT INTO purchases (user, balance) VALUES ('user1', -8) IF NOT EXISTS;
-            UPDATE UserActionCounts SET total = total + 1 WHERE keyalias = 523;
-            UPDATE AdminActionCounts SET total = total + 1 WHERE keyalias = 701;
-        APPLY BATCH;
-        *
-        * */
         this.cluster = Cluster.builder()
                 .addContactPoints(this.cassandraNodes)
                 .withPort(this.cassandraPorts)
@@ -102,19 +103,24 @@ public class CassandraCounterRepository implements CounterRepository {
         }
     }
 
+    public long count(){
+        Row row =  getSession().execute("SELECT COUNT(*) FROM counters.time_series_minute;").one();
+        return row.getLong("count");
+    }
+
     @Override
     public void persist(String topic, Integer slotKeyInMinute, ConcurrentHashMap<AggregationCounterKey, AtomicLong> olderSlot) throws CounterRepositoryException {
 
         try{
 
-            PreparedStatement preparedStatement = getSession().prepare("UPDATE time_series_minute SET value = value+? WHERE lookup_key=? and date=? and slot=?;");
-            BatchStatement batch = new BatchStatement();
+            PreparedStatement preparedStatement = getSession().prepare("UPDATE counters.time_series_minute SET value = value+? WHERE lookup_key=? and date=? and slot=?;");
+            BatchStatement batch = new BatchStatement(BatchStatement.Type.UNLOGGED);
             for (Map.Entry<AggregationCounterKey, AtomicLong> aggregationCounterKeyAtomicLongEntry : olderSlot.entrySet()) {
 
                 /* Get the key values and append it to the batch */
                 AggregationCounterKey key = aggregationCounterKeyAtomicLongEntry.getKey();
                 AtomicLong counter = aggregationCounterKeyAtomicLongEntry.getValue();
-                batch.add(preparedStatement.bind(counter, key.getCounterKey(), key.getDate(), slotKeyInMinute));
+                batch.add(preparedStatement.bind(counter.get(), key.getCounterKey(), key.getDate(), slotKeyInMinute));
 
                 /* Check out if its time to commit. */
                 if (batch.size() == this.flushSize){
@@ -122,7 +128,7 @@ public class CassandraCounterRepository implements CounterRepository {
                     getSession().execute(batch);
 
                     /* Reset the Batch. */
-                    batch = new BatchStatement();
+                    batch = new BatchStatement(BatchStatement.Type.UNLOGGED);
                 }
 
             }

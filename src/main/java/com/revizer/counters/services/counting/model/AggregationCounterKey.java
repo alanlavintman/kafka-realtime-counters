@@ -10,7 +10,7 @@ public class AggregationCounterKey {
     public AggregationCounterKey() {
     }
 
-    public AggregationCounterKey(String counterKey, String date, Long minuteSlot) {
+    public AggregationCounterKey(String counterKey, String date) {
         this.counterKey = counterKey;
         this.date = date;
     }

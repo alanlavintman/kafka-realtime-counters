@@ -45,8 +45,11 @@ public class CounterSlotHolder {
         return slotHolder.firstKey();
     }
 
-    public ConcurrentHashMap<AggregationCounterKey, AtomicLong> removeSlot(Integer key){
+    public int size(){
+        return slotHolder.size();
+    }
 
+    public ConcurrentHashMap<AggregationCounterKey, AtomicLong> removeSlot(Integer key){
         /* Start by removing the older item. */
         ConcurrentHashMap<AggregationCounterKey, AtomicLong> remove = slotHolder.remove(key);
         return remove;

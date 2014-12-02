@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by alanl on 11/9/14.
@@ -22,7 +23,9 @@ public class KafkaStreamingService extends StreamingService {
     private ConsumerConfig consumerConfig = null;
     private Map<String,Integer> topicStreamMap = null;
     private KafkaJsonMessageDecoder messageDecoder = new KafkaJsonMessageDecoder();
+    private List<KafkaStreamingHandler> handlers = new ArrayList<KafkaStreamingHandler>();
     private int parallelism = 0;
+    private ExecutorService executor = null;
 
     public KafkaStreamingService(Configuration configuration, MetricsService metricsService) {
         super(configuration, metricsService);
@@ -73,7 +76,7 @@ public class KafkaStreamingService extends StreamingService {
 
         ConsumerConnector consumer = Consumer.createJavaConsumerConnector(consumerConfig);
         Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = consumer.createMessageStreams(topicStreamMap);
-        ExecutorService executor = Executors.newFixedThreadPool(this.parallelism);
+        executor = Executors.newFixedThreadPool(this.parallelism);
 
         // For each topic
         int threadNumber = 0;
@@ -81,7 +84,9 @@ public class KafkaStreamingService extends StreamingService {
             List<KafkaStream<byte[], byte[]>> streamList = topicStreamMap.getValue();
             for (KafkaStream<byte[], byte[]> stream : streamList) {
                 String topicName = topicStreamMap.getKey();
-                executor.submit(new KafkaStreamingHandler(this.getConfiguration(), this.getMetricsService(), topicName, stream, threadNumber, this.messageDecoder, this.getListeners()));
+                KafkaStreamingHandler kafkaStreamingHandler = new KafkaStreamingHandler(this.getConfiguration(), this.getMetricsService(), topicName, stream, threadNumber, this.messageDecoder, this.getListeners());
+                handlers.add(kafkaStreamingHandler);
+                executor.submit(kafkaStreamingHandler);
                 threadNumber++;
             }
         }
@@ -90,7 +95,39 @@ public class KafkaStreamingService extends StreamingService {
 
     @Override
     public void stop() {
-        //TODO: Build the stop !!!
+        logger.info("Starting to stop the streaming service handlers.");
+        for (KafkaStreamingHandler handler : handlers) {
+            logger.info("Closing topic: {} and thread number: {}", handler.getTopic(), handler.getThreadNumber());
+            handler.shutdown();
+        }
+        logger.info("Finished to stop the streaming service handlers.");
+        logger.info("Starting to shutdown the executor service.");
+        // Shut down the executor service instance.
+        shutdownAndAwaitTermination(executor);
+        logger.info("Finished Starting to shutdown the executor service.");
+    }
+
+    void shutdownAndAwaitTermination(ExecutorService pool) {
+        // Disable new tasks from being submitted
+        pool.shutdown();
+        try {
+            // Wait a while for existing tasks to terminate
+            logger.info("Waiting for executor service to terminate with timeout of: {} seconds.", 60);
+            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                logger.info("forcing the shutdown.");
+                pool.shutdownNow(); // Cancel currently executing tasks
+                logger.info("Waiting for executor service to terminate after forced shutdown.");
+                if (!pool.awaitTermination(60, TimeUnit.SECONDS)){
+                    logger.error("Executor service pool could not terminate correctly.");
+                }
+             }
+        } catch (InterruptedException ie) {
+            logger.info("Recancelling the executor service pool.");
+            // (Re-)Cancel if current thread also interrupted
+            pool.shutdownNow();
+            logger.info("Preserving the interrupt status.");
+            Thread.currentThread().interrupt();
+        }
     }
 
 

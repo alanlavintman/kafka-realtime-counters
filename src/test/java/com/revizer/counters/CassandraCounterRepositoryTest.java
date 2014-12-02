@@ -6,7 +6,6 @@ import com.revizer.counters.services.counting.model.AggregationCounterKey;
 import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.io.IOUtils;
 import org.apache.thrift.transport.TTransportException;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.junit.Assert;

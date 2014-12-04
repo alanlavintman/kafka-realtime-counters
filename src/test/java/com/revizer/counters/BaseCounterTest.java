@@ -1,6 +1,11 @@
 package com.revizer.counters;
 
+import kafka.utils.ZKStringSerializer;
+import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.configuration.Configuration;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import java.util.Properties;
 
 /**
  * Created by alanl on 11/12/14.
@@ -26,6 +31,15 @@ public class BaseCounterTest {
         }
         event = event.replace("{REVMODS}",revmodsOutput);
         return event;
+    }
+
+    public void createTopic(String topic, int partitions, int replicacionFactor, Properties producerProperties){
+
+        int sessionTimeoutMs = 10000;
+        int connectionTimeoutMs = 10000;
+        ZkClient zkClient = new ZkClient("localhost:2181", sessionTimeoutMs, connectionTimeoutMs);
+        kafka.admin.AdminUtils.createTopic(zkClient, topic, partitions, replicacionFactor, producerProperties);
+
     }
 
 }

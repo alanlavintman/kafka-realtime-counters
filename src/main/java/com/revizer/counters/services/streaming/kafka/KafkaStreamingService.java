@@ -1,6 +1,7 @@
 package com.revizer.counters.services.streaming.kafka;
 
 import com.revizer.counters.services.metrics.MetricsService;
+import com.revizer.counters.services.streaming.StreamServiceListener;
 import com.revizer.counters.services.streaming.StreamingService;
 import com.revizer.counters.utils.ConfigurationParser;
 import kafka.consumer.*;
@@ -26,6 +27,7 @@ public class KafkaStreamingService extends StreamingService {
     private List<KafkaStreamingHandler> handlers = new ArrayList<KafkaStreamingHandler>();
     private int parallelism = 0;
     private ExecutorService executor = null;
+    private ConsumerConnector consumer;
 
     public KafkaStreamingService(Configuration configuration, MetricsService metricsService) {
         super(configuration, metricsService);
@@ -73,20 +75,20 @@ public class KafkaStreamingService extends StreamingService {
 
     @Override
     public void start() {
-
-        ConsumerConnector consumer = Consumer.createJavaConsumerConnector(consumerConfig);
+        MetricsService metricsService = this.getMetricsService();
+        List<StreamServiceListener> listeners = this.getListeners();
+        Configuration configuration = this.getConfiguration();
+        this.consumer = Consumer.createJavaConsumerConnector(consumerConfig);
+        this.executor = Executors.newFixedThreadPool(this.parallelism);
         Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = consumer.createMessageStreams(topicStreamMap);
-        executor = Executors.newFixedThreadPool(this.parallelism);
-
-        // For each topic
         int threadNumber = 0;
-        for (Map.Entry<String, List<KafkaStream<byte[], byte[]>>> topicStreamMap : messageStreams.entrySet()) {
-            List<KafkaStream<byte[], byte[]>> streamList = topicStreamMap.getValue();
-            for (KafkaStream<byte[], byte[]> stream : streamList) {
-                String topicName = topicStreamMap.getKey();
-                KafkaStreamingHandler kafkaStreamingHandler = new KafkaStreamingHandler(this.getConfiguration(), this.getMetricsService(), topicName, stream, threadNumber, this.messageDecoder, this.getListeners());
-                handlers.add(kafkaStreamingHandler);
-                executor.submit(kafkaStreamingHandler);
+        for (Map.Entry<String, Integer> stringIntegerEntry : topicStreamMap.entrySet()) {
+            String topic = stringIntegerEntry.getKey();
+            List<KafkaStream<byte[], byte[]>> streams = messageStreams.get(topic);
+            for (KafkaStream<byte[], byte[]> stream : streams) {
+//                KafkaStreamingHandler kafkaStreamingHandler = ;
+//                handlers.add(kafkaStreamingHandler);
+                executor.submit(new KafkaStreamingHandler(configuration, metricsService, topic, stream, threadNumber, this.messageDecoder, listeners));
                 threadNumber++;
             }
         }
@@ -95,12 +97,9 @@ public class KafkaStreamingService extends StreamingService {
 
     @Override
     public void stop() {
-        logger.info("Starting to stop the streaming service handlers.");
-        for (KafkaStreamingHandler handler : handlers) {
-            logger.info("Closing topic: {} and thread number: {}", handler.getTopic(), handler.getThreadNumber());
-            handler.shutdown();
-        }
-        logger.info("Finished to stop the streaming service handlers.");
+        logger.info("Starting to stop the consumer connector.");
+        this.consumer.shutdown();
+        logger.info("Finished to stop the consumer connector.");
         logger.info("Starting to shutdown the executor service.");
         // Shut down the executor service instance.
         shutdownAndAwaitTermination(executor);

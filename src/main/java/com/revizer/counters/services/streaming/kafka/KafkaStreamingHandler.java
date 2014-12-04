@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class KafkaStreamingHandler<T> implements Runnable {
 
-    private volatile boolean keepRunning = true;
     private Configuration configuration;
     private MetricsService metricsService;
     private Meter rps;
@@ -30,14 +29,6 @@ public class KafkaStreamingHandler<T> implements Runnable {
     private KafkaJsonMessageDecoder decoder;
     private List<StreamServiceListener> listeners;
     private static Logger logger = LoggerFactory.getLogger(KafkaStreamingHandler.class);
-
-    public boolean isKeepRunning() {
-        return keepRunning;
-    }
-
-    public void setKeepRunning(boolean keepRunning) {
-        this.keepRunning = keepRunning;
-    }
 
     public Configuration getConfiguration() {
         return configuration;
@@ -114,7 +105,7 @@ public class KafkaStreamingHandler<T> implements Runnable {
 
     public void run() {
         ConsumerIterator<byte[], byte[]> consumerIterator = stream.iterator();
-        while (keepRunning && consumerIterator.hasNext()){
+        while (consumerIterator.hasNext()){
             JsonNode event = null;
             try {
                 this.rps.mark();
@@ -133,6 +124,6 @@ public class KafkaStreamingHandler<T> implements Runnable {
     }
 
     public void shutdown() {
-        keepRunning = false;
+
     }
 }

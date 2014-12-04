@@ -1,4 +1,3 @@
-create keyspace counters with strategy_class = 'SimpleStrategy'  and strategy_options:replication_factor = 2;
 CREATE KEYSPACE counters WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };
 
 use counters;

@@ -138,13 +138,16 @@ public class CounterSlotHolderCleaner implements Runnable {
         // If the olderSlot is null, it means we need to pick up a new slot to persist.
         boolean persisted = false;
         Integer slotKeyInMinute = holder.getOlderSlotKey();
-        ConcurrentHashMap<AggregationCounterKey, AtomicLong> olderSlot = holder.removeSlot(slotKeyInMinute);
-        try {
-            // Persist the data in cassandra.
-            repository.persist(topic, slotKeyInMinute, olderSlot);
-            persisted = true;
-        } catch (CounterRepositoryException e) {
-            logger.error("Error while trying to store slot: {} and topic : {} in cassandra.", topic, e);
+        /* If there is at least one slot, we try to persist it */
+        if (slotKeyInMinute != null){
+            ConcurrentHashMap<AggregationCounterKey, AtomicLong> olderSlot = holder.removeSlot(slotKeyInMinute);
+            try {
+                // Persist the data in cassandra.
+                repository.persist(topic, slotKeyInMinute, olderSlot);
+                persisted = true;
+            } catch (CounterRepositoryException e) {
+                logger.error("Error while trying to store slot: {} and topic : {} in cassandra.", topic, e);
+            }
         }
         return persisted;
     }

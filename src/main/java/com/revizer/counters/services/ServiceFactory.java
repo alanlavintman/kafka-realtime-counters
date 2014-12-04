@@ -64,4 +64,5 @@ public class ServiceFactory {
         streamServiceListenerCounter.inc();
         return counterKafkaJsonListener;
     }
+
 }

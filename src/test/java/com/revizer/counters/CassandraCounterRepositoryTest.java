@@ -35,7 +35,6 @@ public class CassandraCounterRepositoryTest {
             repository.initialize(configuration);
             repository.initializeSchema(); // creates the keyspace and the table.
 
-
             String topic = "inject";
             Integer minuteSlot = 1;
             ConcurrentHashMap<AggregationCounterKey, AtomicLong> timeseries = new ConcurrentHashMap<>();
@@ -59,7 +58,6 @@ public class CassandraCounterRepositoryTest {
             // We test that the amount of rows are the same.
             Assert.assertEquals(count,maxAff*maxSubAff);
 
-
         } catch (CounterRepositoryException e){
             Assert.fail(e.toString());
         } catch (TTransportException e) {
@@ -81,6 +79,10 @@ public class CassandraCounterRepositoryTest {
         configuration.addProperty("counters.repository.cassandra.nodes","127.0.0.1");
         configuration.addProperty("counters.repository.cassandra.port",9142);
         configuration.addProperty("counters.repository.cassandra.reconnection.policy",1000);
+        configuration.addProperty("counters.repository.cassandra.flush.size",10);
+
+        configuration.addProperty("counters.repository.cassandra.flush.size",10);
+        configuration.addProperty("counters.repository.cassandra.flush.size",10);
         configuration.addProperty("counters.repository.cassandra.flush.size",10);
         return configuration;
     }

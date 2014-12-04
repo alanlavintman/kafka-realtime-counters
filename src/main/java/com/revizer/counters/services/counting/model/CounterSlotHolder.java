@@ -42,7 +42,11 @@ public class CounterSlotHolder {
     }
 
     public Integer getOlderSlotKey(){
-        return slotHolder.firstKey();
+        if (slotHolder.size() > 0){
+            return slotHolder.firstKey();
+        } else {
+            return null;
+        }
     }
 
     public int size(){

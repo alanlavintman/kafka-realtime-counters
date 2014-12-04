@@ -69,7 +69,6 @@ public abstract class BaseCounterService implements CounterService {
 
     @Override
     public void start() {
-
         int amountOfTopics = this.counterTopicAggregator.getTopicStreamsMap().keySet().size();
         ExecutorService executor = Executors.newFixedThreadPool(amountOfTopics);
         for (String topic : this.counterTopicAggregator.getTopicStreamsMap().keySet()) {
@@ -80,16 +79,13 @@ public abstract class BaseCounterService implements CounterService {
             dataCleaner.put(topic, cleaner);
             executor.execute(cleaner);
         }
-
     }
 
     @Override
     public void stop() {
-
         for (CounterSlotHolderCleaner counterSlotHolderCleaner : dataCleaner.values()) {
-//            counterSlotHolderCleaner.kill~!!!
+            counterSlotHolderCleaner.shutdown();
         }
-
     }
 }
 

@@ -1,12 +1,10 @@
-package com.revizer.counters.services.streaming.kafka;
+package com.revizer.counters.v2.streaming;
 
-import com.codahale.metrics.Meter;
 import com.revizer.counters.services.metrics.MetricsService;
-import com.revizer.counters.services.streaming.exceptions.MessageDecoderException;
 import com.revizer.counters.services.streaming.StreamServiceListener;
+import com.revizer.counters.services.streaming.exceptions.MessageDecoderException;
 import com.revizer.counters.services.streaming.exceptions.StreamServiceListenerException;
 import com.revizer.counters.v2.CounterContext;
-import com.revizer.counters.v2.streaming.KafkaJsonMessageDecoder;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import org.apache.commons.configuration.Configuration;
@@ -19,7 +17,7 @@ import java.util.List;
 /**
  * Created by alanl on 11/10/14.
  */
-public class KafkaStreamingHandler<T> implements Runnable {
+public class KafkaConsumerHandler implements Runnable {
 
     private Configuration configuration;
     private MetricsService metricsService;
@@ -28,7 +26,7 @@ public class KafkaStreamingHandler<T> implements Runnable {
     private String topic;
     private KafkaJsonMessageDecoder decoder;
     private List<StreamServiceListener> listeners;
-    private static Logger logger = LoggerFactory.getLogger(KafkaStreamingHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(KafkaConsumerHandler.class);
 
     public Configuration getConfiguration() {
         return configuration;
@@ -79,13 +77,11 @@ public class KafkaStreamingHandler<T> implements Runnable {
         this.decoder = decoder;
     }
 
-    public KafkaStreamingHandler(CounterContext context, String topic, KafkaStream stream, int threadNumber, KafkaJsonMessageDecoder decoder) {
+    public KafkaConsumerHandler(CounterContext context, String topic, KafkaStream stream, int threadNumber, KafkaJsonMessageDecoder decoder) {
         this.topic = topic;
         this.threadNumber = threadNumber;
         this.stream = stream;
         this.decoder = decoder;
-//        this.listeners = listeners;
-//        this.rps = metricsService.createMeter(KafkaStreamingHandler.class,topic + "-rps");
     }
 
     public void run() {

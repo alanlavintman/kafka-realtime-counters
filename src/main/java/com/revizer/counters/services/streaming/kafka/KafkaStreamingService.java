@@ -4,6 +4,7 @@ import com.revizer.counters.services.metrics.MetricsService;
 import com.revizer.counters.services.streaming.StreamServiceListener;
 import com.revizer.counters.services.streaming.StreamingService;
 import com.revizer.counters.utils.ConfigurationParser;
+import com.revizer.counters.v2.streaming.KafkaJsonMessageDecoder;
 import kafka.consumer.*;
 import kafka.javaapi.consumer.ConsumerConnector;
 import org.apache.commons.configuration.Configuration;
@@ -88,7 +89,7 @@ public class KafkaStreamingService extends StreamingService {
             for (KafkaStream<byte[], byte[]> stream : streams) {
 //                KafkaStreamingHandler kafkaStreamingHandler = ;
 //                handlers.add(kafkaStreamingHandler);
-                executor.submit(new KafkaStreamingHandler(configuration, metricsService, topic, stream, threadNumber, this.messageDecoder, listeners));
+//                executor.submit(new KafkaStreamingHandler(configuration, metricsService, topic, stream, threadNumber, this.messageDecoder, listeners));
                 threadNumber++;
             }
         }

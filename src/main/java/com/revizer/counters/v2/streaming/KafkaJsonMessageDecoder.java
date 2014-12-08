@@ -1,9 +1,10 @@
-package com.revizer.counters.services.streaming.kafka;
+package com.revizer.counters.v2.streaming;
 
 import com.codahale.metrics.Meter;
 import com.revizer.counters.services.metrics.MetricsService;
 import com.revizer.counters.services.streaming.exceptions.InitializeDecoderException;
 import com.revizer.counters.services.streaming.exceptions.MessageDecoderException;
+import com.revizer.counters.services.streaming.kafka.MessageDecoder;
 import org.apache.commons.configuration.Configuration;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
@@ -15,11 +16,11 @@ import java.io.UnsupportedEncodingException;
 /**
  * Created by alanl on 11/10/14.
  */
-public class KafkaJsonMessageDecoder implements MessageDecoder<JsonNode> {
+public class KafkaJsonMessageDecoder implements MessageDecoder {
 
     private ObjectMapper mapper = null;
-    private Meter failedDecoderMeter = null;
-    private Meter failedDecoderStringMeter = null;
+//    private Meter failedDecoderMeter = null;
+//    private Meter failedDecoderStringMeter = null;
 
     @Override
     public JsonNode decode(byte[] message) throws MessageDecoderException {
@@ -28,13 +29,13 @@ public class KafkaJsonMessageDecoder implements MessageDecoder<JsonNode> {
             JsonNode node = mapper.readTree(stringMessage);
             return node;
         } catch (UnsupportedEncodingException e) {
-            failedDecoderStringMeter.mark();
+//            failedDecoderStringMeter.mark();
             throw new MessageDecoderException(e);
         } catch (JsonProcessingException e) {
-            failedDecoderMeter.mark();
+//            failedDecoderMeter.mark();
             throw new MessageDecoderException(e);
         } catch (IOException e) {
-            failedDecoderMeter.mark();
+//            failedDecoderMeter.mark();
             throw new MessageDecoderException(e);
         }
     }
@@ -42,8 +43,8 @@ public class KafkaJsonMessageDecoder implements MessageDecoder<JsonNode> {
     @Override
     public void initialize(Configuration configuration, MetricsService service) throws InitializeDecoderException {
         mapper = new ObjectMapper();
-        failedDecoderMeter = service.createMeter(MessageDecoder.class, "failed-to-decode-json");
-        failedDecoderStringMeter = service.createMeter(MessageDecoder.class, "failed-to-decode-string");
+//        failedDecoderMeter = service.createMeter(MessageDecoder.class, "failed-to-decode-json");
+//        failedDecoderStringMeter = service.createMeter(MessageDecoder.class, "failed-to-decode-string");
     }
 
 }

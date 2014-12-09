@@ -31,7 +31,7 @@ public class CounterContextConfiguration {
         /* Build the topic list and discard the ones that are not configured in the kafka server */
         context = buildKafkaConfiguration(configuration, context);
 
-        return null;
+        return context;
 
     }
 
@@ -79,16 +79,17 @@ public class CounterContextConfiguration {
         for (String configuredTopic : configuredTopics) {
             String[] topicNameAndPartitions = configuredTopic.split(":");
             String topicName = topicNameAndPartitions[0];
-            if (topicNameAndPartitions.length > 1){
-                topicName = topicNameAndPartitions[1];
-            }
+            boolean found = false;
             for (String kafkaTopic : allKafkaTopicsArray) {
                 if (topicName.equals(kafkaTopic)){
                     // Get the amount of partitions.
                     context.getTopicAndPartition().add(kafkaTopic);
+                    found = true;
                 }
             }
-            topicSkipList.add(topicName);
+            if (!found){
+                topicSkipList.add(topicName);
+            }
         }
 
         if (context.getTopicAndPartition().size() == 0){

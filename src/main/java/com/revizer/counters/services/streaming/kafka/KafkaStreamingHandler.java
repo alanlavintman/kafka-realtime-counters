@@ -28,7 +28,9 @@ public class KafkaStreamingHandler<T> implements Runnable {
     private String topic;
     private KafkaJsonMessageDecoder decoder;
     private List<StreamServiceListener> listeners;
+    private ConsumerIterator<byte[], byte[]> consumerIterator;
     private static Logger logger = LoggerFactory.getLogger(KafkaStreamingHandler.class);
+
 
     public Configuration getConfiguration() {
         return configuration;
@@ -79,21 +81,22 @@ public class KafkaStreamingHandler<T> implements Runnable {
         this.decoder = decoder;
     }
 
-    public KafkaStreamingHandler(CounterContext context, String topic, KafkaStream stream, int threadNumber, KafkaJsonMessageDecoder decoder) {
+    public KafkaStreamingHandler(CounterContext context, String topic, ConsumerIterator<byte[], byte[]> consumerIterator , int threadNumber, KafkaJsonMessageDecoder decoder) {
         this.topic = topic;
         this.threadNumber = threadNumber;
         this.stream = stream;
         this.decoder = decoder;
+        this.consumerIterator = consumerIterator;
 //        this.listeners = listeners;
 //        this.rps = metricsService.createMeter(KafkaStreamingHandler.class,topic + "-rps");
     }
 
     public void run() {
-        ConsumerIterator<byte[], byte[]> consumerIterator = stream.iterator();
-        while (consumerIterator.hasNext()){
+//        ConsumerIterator<byte[], byte[]> consumerIterator = stream.iterator();
+        while (this.consumerIterator.hasNext()){
             JsonNode event = null;
             try {
-                event = decoder.decode(consumerIterator.next().message());
+                event = decoder.decode(this.consumerIterator.next().message());
                 for (StreamServiceListener listener : listeners) {
                     try {
                         listener.process(topic, event);

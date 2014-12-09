@@ -5,7 +5,6 @@ import com.revizer.counters.utils.ConfigurationParser;
 import com.revizer.counters.v2.streaming.KafkaJsonMessageDecoder;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
-import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import org.apache.commons.configuration.Configuration;
@@ -27,13 +26,13 @@ public class CountingSystem {
     private Map<String, Integer> topicStreamMap;
     private ExecutorService executor = null;
     private ConsumerConnector consumer;
-    private int parallelism;
     private KafkaJsonMessageDecoder decoder;
+    private int parallelism;
 
     public CountingSystem(CounterContext context) {
         this.context = context;
-        consumerConfig = new ConsumerConfig(configure(this.context.getConfiguration()));
-        topicStreamMap = createTopicStreamMap(this.context.getConfiguration());
+        this.consumerConfig = new ConsumerConfig(configure(this.context.getConfiguration()));
+        this.topicStreamMap = createTopicStreamMapAndChangeParalellism(this.context.getConfiguration());
         this.decoder = new KafkaJsonMessageDecoder();
     }
 
@@ -42,35 +41,20 @@ public class CountingSystem {
         this.executor = Executors.newFixedThreadPool(this.parallelism);
         Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = consumer.createMessageStreams(topicStreamMap);
         int threadNumber = 0;
-
         for (String topic : messageStreams.keySet()) {
             List<KafkaStream<byte[], byte[]>> streamList = messageStreams.get(topic);
             for (KafkaStream<byte[], byte[]> stream : streamList) {
-                ConsumerIterator it = stream.iterator();
-                while(it.hasNext())
-                    System.out.println(it.next().message().toString());
-
-                executor.submit(new KafkaStreamingHandler(context, topic, stream.iterator(), threadNumber, this.decoder));
+                executor.submit(new KafkaStreamingHandler(context, topic, stream, threadNumber, this.decoder));
                 threadNumber++;
             }
         }
-
-
-//        for (Map.Entry<String, Integer> stringIntegerEntry : topicStreamMap.entrySet()) {
-//            String topic = stringIntegerEntry.getKey();
-//            List<KafkaStream<byte[], byte[]>> streams = messageStreams.get(topic);
-//            for (KafkaStream<byte[], byte[]> stream : streams) {
-//                executor.submit(new KafkaStreamingHandler(context, topic, stream, threadNumber, this.decoder));
-//                threadNumber++;
-//            }
-//        }
     }
 
     public void stop(){
-
+        this.consumer.shutdown();
     }
 
-    public Map<String, Integer> createTopicStreamMap(Configuration configuration) {
+    public Map<String, Integer> createTopicStreamMapAndChangeParalellism(Configuration configuration) {
         Map<String, Integer> topicAndNumOfStreams = ConfigurationParser.getTopicAndNumOfStreams(configuration);
         for (Integer numOfStreams : topicAndNumOfStreams.values()) {
             this.parallelism += numOfStreams;

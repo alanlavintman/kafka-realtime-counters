@@ -1,5 +1,9 @@
 package com.revizer.counters.v2;
 
+import com.google.common.base.Preconditions;
+import com.revizer.counters.utils.ConfigurationParser;
+import com.revizer.counters.v2.counters.AggregationCounter;
+import com.revizer.counters.v2.counters.TopicAggregationsHolder;
 import kafka.cluster.Broker;
 import kafka.utils.ZKStringSerializer;
 import kafka.utils.ZkUtils;
@@ -28,31 +32,56 @@ public class CounterContextConfiguration {
 
         CounterContext context = new CounterContext(configuration);
 
-        /* Build the topic list and discard the ones that are not configured in the kafka server */
+        /* Build the topic list and discard the ones that are not configured in the kafka server. */
         context = buildKafkaConfiguration(configuration, context);
+
+        /* Build the aggregations object graph, filter the ones that do not belong to the topics that do not exists. */
+        context = buildAggregationsGraph(configuration, context);
 
         return context;
 
     }
 
-    private static ZkClient buildZkClient(String zookeeperConnect){
-        return new ZkClient(zookeeperConnect, 30000, 30000, new ZkSerializer() {
-            @Override
-            public byte[] serialize(Object o)
-                    throws ZkMarshallingError
-            {
-                return ZKStringSerializer.serialize(o);
+    private static CounterContext buildAggregationsGraph(Configuration configuration, CounterContext context) {
+        TopicAggregationsHolder topicAggregationsHolder = new TopicAggregationsHolder();
+        Preconditions.checkArgument(context.getTopicAndPartition() != null, "There are no kafka topics that can match the configuration streaming.kafka.topics");
+        Preconditions.checkArgument(context.getTopicAndPartition().size() > 0, "There are no kafka topics that can match the configuration streaming.kafka.topics");
+
+        List<String> topicAndPartitions = context.getTopicAndPartition();
+        for (String topicAndPartition : topicAndPartitions) {
+
+            String[] topicNameArray = topicAndPartition.split(":");
+            String topicName = topicNameArray[0];
+            String timeField = configuration.getString("counters.topic.timefield." + topicName, "now");
+            Boolean countTotal = configuration.getBoolean("counters.counter.total." + topicName, false);
+            topicAggregationsHolder.addNowField(topicName,timeField);
+            if (countTotal == true){
+                topicAggregationsHolder.addTopicCountersTotal(topicName);
             }
 
-            @Override
-            public Object deserialize(byte[] bytes)
-                    throws ZkMarshallingError
-            {
-                return ZKStringSerializer.deserialize(bytes);
+            String counterKey = "counters.counter." + topicName;
+            List<String> aggregationKeys = ConfigurationParser.getKeysThatStartsWith(configuration, counterKey);
+            List<AggregationCounter> aggregationCounters = new ArrayList<AggregationCounter>();
+            for (String aggregationKey : aggregationKeys) {
+                String aggregationName = aggregationKey.substring(counterKey.length());
+                String[] aggregationValue = configuration.getStringArray(aggregationKey);
+                AggregationCounter aggregation = new AggregationCounter(topicName, aggregationName, aggregationValue);
+                aggregationCounters.add(aggregation);
             }
-        });
+            topicAggregationsHolder.getTopicAggregations().put(topicName,aggregationCounters);
+        }
+        context.setTopicAggregationsHolder(topicAggregationsHolder);
+
+        return context;
     }
 
+
+    /**
+     * Method in charge of decorating a CounterContext
+     * @param configuration
+     * @param context
+     * @return
+     */
     private static CounterContext buildKafkaConfiguration(Configuration configuration, CounterContext context) {
         String zookeeperConnect = configuration.getString("streaming.kafka.zookeeper.connect");
         ZkClient zkClient = buildZkClient(zookeeperConnect);
@@ -101,5 +130,23 @@ public class CounterContextConfiguration {
         }
 
         return context;
+    }
+
+    private static ZkClient buildZkClient(String zookeeperConnect){
+        return new ZkClient(zookeeperConnect, 30000, 30000, new ZkSerializer() {
+            @Override
+            public byte[] serialize(Object o)
+                    throws ZkMarshallingError
+            {
+                return ZKStringSerializer.serialize(o);
+            }
+
+            @Override
+            public Object deserialize(byte[] bytes)
+                    throws ZkMarshallingError
+            {
+                return ZKStringSerializer.deserialize(bytes);
+            }
+        });
     }
 }

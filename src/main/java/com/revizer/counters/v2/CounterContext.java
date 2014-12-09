@@ -1,5 +1,6 @@
 package com.revizer.counters.v2;
 
+import com.revizer.counters.v2.counters.TopicAggregationsHolder;
 import org.apache.commons.configuration.Configuration;
 
 import java.util.ArrayList;
@@ -13,11 +14,20 @@ public class CounterContext {
     private Configuration configuration;
     private List<String> brokers;
     private List<String> topicAndPartition;
+    private TopicAggregationsHolder topicAggregationsHolder;
 
     public CounterContext(Configuration configuration) {
         this.configuration = configuration;
         this.brokers = new ArrayList<>();
         this.topicAndPartition = new ArrayList<>();
+    }
+
+    public TopicAggregationsHolder getTopicAggregationsHolder() {
+        return topicAggregationsHolder;
+    }
+
+    public void setTopicAggregationsHolder(TopicAggregationsHolder topicAggregationsHolder) {
+        this.topicAggregationsHolder = topicAggregationsHolder;
     }
 
     public Configuration getConfiguration() {

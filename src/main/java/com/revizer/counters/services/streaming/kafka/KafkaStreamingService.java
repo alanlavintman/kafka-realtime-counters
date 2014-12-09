@@ -93,7 +93,6 @@ public class KafkaStreamingService extends StreamingService {
                 threadNumber++;
             }
         }
-
     }
 
     @Override

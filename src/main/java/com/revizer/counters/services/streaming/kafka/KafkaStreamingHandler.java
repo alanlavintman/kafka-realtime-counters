@@ -7,6 +7,7 @@ import com.revizer.counters.services.streaming.StreamServiceListener;
 import com.revizer.counters.services.streaming.exceptions.StreamServiceListenerException;
 import com.revizer.counters.v2.CounterContext;
 import com.revizer.counters.v2.streaming.KafkaJsonMessageDecoder;
+import com.revizer.counters.v2.streaming.KafkaStreamListener;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import org.apache.commons.configuration.Configuration;
@@ -23,14 +24,21 @@ public class KafkaStreamingHandler<T> implements Runnable {
 
     private Configuration configuration;
     private MetricsService metricsService;
-    private KafkaStream stream;
     private int threadNumber;
     private String topic;
     private KafkaJsonMessageDecoder decoder;
     private List<StreamServiceListener> listeners;
-    private ConsumerIterator<byte[], byte[]> consumerIterator;
     private static Logger logger = LoggerFactory.getLogger(KafkaStreamingHandler.class);
+    private KafkaStream<byte[], byte[]> stream;
+    private List<KafkaStreamListener> listeners;
 
+    public List<KafkaStreamListener> getListeners() {
+        return listeners;
+    }
+
+    public void setListeners(List<KafkaStreamListener> listeners) {
+        this.listeners = listeners;
+    }
 
     public Configuration getConfiguration() {
         return configuration;
@@ -81,23 +89,23 @@ public class KafkaStreamingHandler<T> implements Runnable {
         this.decoder = decoder;
     }
 
-    public KafkaStreamingHandler(CounterContext context, String topic, ConsumerIterator<byte[], byte[]> consumerIterator , int threadNumber, KafkaJsonMessageDecoder decoder) {
+    public KafkaStreamingHandler(CounterContext context, String topic, KafkaStream<byte[], byte[]> stream , int threadNumber, KafkaJsonMessageDecoder decoder, List<KafkaStreamListener> listeners) {
         this.topic = topic;
         this.threadNumber = threadNumber;
         this.stream = stream;
         this.decoder = decoder;
-        this.consumerIterator = consumerIterator;
-//        this.listeners = listeners;
+        this.stream = stream;
+        this.listeners = listeners;
 //        this.rps = metricsService.createMeter(KafkaStreamingHandler.class,topic + "-rps");
     }
 
     public void run() {
-//        ConsumerIterator<byte[], byte[]> consumerIterator = stream.iterator();
-        while (this.consumerIterator.hasNext()){
+        ConsumerIterator<byte[], byte[]> consumerIterator = this.stream.iterator();
+        while (consumerIterator.hasNext()){
             JsonNode event = null;
             try {
-                event = decoder.decode(this.consumerIterator.next().message());
-                for (StreamServiceListener listener : listeners) {
+                event = decoder.decode(consumerIterator.next().message());
+                for (KafkaStreamListener listener : listeners) {
                     try {
                         listener.process(topic, event);
                     } catch (StreamServiceListenerException e) {

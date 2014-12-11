@@ -1,13 +1,16 @@
 package com.revizer.counters.v2;
 
-import com.revizer.counters.services.streaming.kafka.KafkaStreamingHandler;
+import com.codahale.metrics.Counting;
 import com.revizer.counters.utils.ConfigurationParser;
+import com.revizer.counters.v2.streaming.KafkaConsumerHandler;
 import com.revizer.counters.v2.streaming.KafkaJsonMessageDecoder;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import org.apache.commons.configuration.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +31,7 @@ public class CountingSystem {
     private ConsumerConnector consumer;
     private KafkaJsonMessageDecoder decoder;
     private int parallelism;
+    private static Logger logger = LoggerFactory.getLogger(CountingSystem.class);
 
     public CountingSystem(CounterContext context) {
         this.context = context;
@@ -37,6 +41,16 @@ public class CountingSystem {
     }
 
     public void start(){
+
+        ConfigurationParser.printLine(logger);
+        logger.info("   Starting the Counting System.");
+        ConfigurationParser.printLine(logger);
+
+        /* Start the jmx metrics*/
+        this.context.getMetricsService().start();
+
+        logger.info("       Starting the Consumer Handlers.");
+        /* Fire all the threads according to the paralellism configured. */
         this.consumer = Consumer.createJavaConsumerConnector(consumerConfig);
         this.executor = Executors.newFixedThreadPool(this.parallelism);
         Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = consumer.createMessageStreams(topicStreamMap);
@@ -44,14 +58,36 @@ public class CountingSystem {
         for (String topic : messageStreams.keySet()) {
             List<KafkaStream<byte[], byte[]>> streamList = messageStreams.get(topic);
             for (KafkaStream<byte[], byte[]> stream : streamList) {
-                executor.submit(new KafkaStreamingHandler(context, topic, stream, threadNumber, this.decoder));
+                logger.info("       Registering handler for topic {} and thread number {}", topic, threadNumber);
+                executor.submit(new KafkaConsumerHandler(this.context, topic, stream, threadNumber));
                 threadNumber++;
             }
         }
+        logger.info("       Consumer Handlers started successfully with a paralellism of {}.", this.parallelism);
+        ConfigurationParser.printLine(logger);
+        logger.info("   Counting System started successfully.");
+        ConfigurationParser.printLine(logger);
     }
 
     public void stop(){
-        this.consumer.shutdown();
+        ConfigurationParser.printLine(logger);
+        logger.info("Starting to shut down the counting system");
+        ConfigurationParser.printLine(logger);
+        try{
+            this.context.getMetricsService().stop();
+        } catch (Exception ex){
+            logger.error("There was an error while trying to stop the metrics service", ex);
+        }
+        logger.info("Starting to shut down the kafka consumer connection.");
+        try{
+            this.consumer.shutdown();
+            logger.info("Kafka consumer connection Shut down successfully");
+        } catch (Exception ex){
+            logger.error("There was an error while trying to stop the kafka consumer connection", ex);
+        }
+        ConfigurationParser.printLine(logger);
+        logger.info("The Counting System has been shut down");
+        ConfigurationParser.printLine(logger);
     }
 
     public Map<String, Integer> createTopicStreamMapAndChangeParalellism(Configuration configuration) {

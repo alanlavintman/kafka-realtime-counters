@@ -1,4 +1,4 @@
-package com.revizer.counters.v2.counters;
+package com.revizer.counters.v2.counters.metadata;
 
 import com.google.common.base.Joiner;
 import org.codehaus.jackson.JsonNode;

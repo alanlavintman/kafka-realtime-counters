@@ -1,18 +1,25 @@
 package com.revizer.counters.v2.streaming;
 
+import com.codahale.metrics.Meter;
 import com.revizer.counters.services.metrics.MetricsService;
 import com.revizer.counters.services.streaming.StreamServiceListener;
 import com.revizer.counters.services.streaming.exceptions.MessageDecoderException;
 import com.revizer.counters.services.streaming.exceptions.StreamServiceListenerException;
 import com.revizer.counters.v2.CounterContext;
+import com.revizer.counters.v2.streaming.listeners.KafkaStreamListener;
+import com.revizer.counters.v2.streaming.listeners.KafkaStreamListenerException;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
+import kafka.message.MessageAndMetadata;
 import org.apache.commons.configuration.Configuration;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by alanl on 11/10/14.
@@ -20,13 +27,22 @@ import java.util.List;
 public class KafkaConsumerHandler implements Runnable {
 
     private Configuration configuration;
-    private MetricsService metricsService;
-    private KafkaStream stream;
+    private KafkaStream<byte[], byte[]> stream;
     private int threadNumber;
     private String topic;
-    private KafkaJsonMessageDecoder decoder;
-    private List<StreamServiceListener> listeners;
+    private CounterContext context;
+    private Meter consumedMessage;
+    private Meter failedDecodedMessage;
+
     private static Logger logger = LoggerFactory.getLogger(KafkaConsumerHandler.class);
+
+    public CounterContext getContext() {
+        return context;
+    }
+
+    public void setContext(CounterContext context) {
+        this.context = context;
+    }
 
     public Configuration getConfiguration() {
         return configuration;
@@ -35,15 +51,6 @@ public class KafkaConsumerHandler implements Runnable {
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
     }
-
-    public MetricsService getMetricsService() {
-        return metricsService;
-    }
-
-    public void setMetricsService(MetricsService metricsService) {
-        this.metricsService = metricsService;
-    }
-
 
     public KafkaStream getStream() {
         return stream;
@@ -69,41 +76,40 @@ public class KafkaConsumerHandler implements Runnable {
         this.topic = topic;
     }
 
-    public KafkaJsonMessageDecoder getDecoder() {
-        return decoder;
-    }
-
-    public void setDecoder(KafkaJsonMessageDecoder decoder) {
-        this.decoder = decoder;
-    }
-
-    public KafkaConsumerHandler(CounterContext context, String topic, KafkaStream stream, int threadNumber, KafkaJsonMessageDecoder decoder) {
+    public KafkaConsumerHandler(CounterContext context, String topic, KafkaStream<byte[], byte[]> stream, int threadNumber) {
+        this.context = context;
         this.topic = topic;
         this.threadNumber = threadNumber;
         this.stream = stream;
-        this.decoder = decoder;
+        this.consumedMessage = context.getMetricsService().createMeter(KafkaConsumerHandler.class,"consumed-event-" + this.getTopic() + "-" + String.valueOf(this.threadNumber));
+        this.failedDecodedMessage = context.getMetricsService().createMeter(KafkaConsumerHandler.class,"failed-decoded-event-" + this.getTopic() + "-" + String.valueOf(this.threadNumber));
     }
 
     public void run() {
-        ConsumerIterator<byte[], byte[]> consumerIterator = stream.iterator();
+        logger.info("Starting to run a new consumer on topic: {} and thread: {}", this.topic, this.threadNumber);
+        ConsumerIterator<byte[],byte[]> consumerIterator = stream.iterator();
         while (consumerIterator.hasNext()){
             JsonNode event = null;
             try {
-                event = decoder.decode(consumerIterator.next().message());
-                for (StreamServiceListener listener : listeners) {
+                event = this.getContext().getDecoder().decode(consumerIterator.next().message());
+                this.consumedMessage.mark();
+                List<KafkaStreamListener> listeners = this.getContext().getListeners();
+                for (KafkaStreamListener listener : listeners) {
                     try {
+                        logger.debug("Processing event on topic: {}, thread: {} and listener {}", this.topic, this.threadNumber, listener.getName());
                         listener.process(topic, event);
-                    } catch (StreamServiceListenerException e) {
+                    } catch (KafkaStreamListenerException e) {
                         logger.error("There was an error while trying to process the stream service listener: {}", listener.getName(), e);
                     }
                 }
             } catch (MessageDecoderException e) {
-                logger.error("There was an error while trying to decode the message: {}", new String(consumerIterator.next().message()), e);
+                logger.error("There was an error while trying to decode the message",e);
+                this.failedDecodedMessage.mark();
             }
         }
     }
 
     public void shutdown() {
-
+        logger.info("Consumer handler on topic: {} thread: {} closed successfully.", this.getTopic(), this.getThreadNumber());
     }
 }

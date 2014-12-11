@@ -35,7 +35,7 @@ public class KafkaStreamingService extends StreamingService {
         /* Get the configuration properties */
         consumerConfig = new ConsumerConfig(configure(configuration));
         topicStreamMap = createTopicStreamMap(configuration);
-        messageDecoder.initialize(configuration, metricsService);
+//        messageDecoder.initialize(configuration, metricsService);
         printConfiguration();
     }
 

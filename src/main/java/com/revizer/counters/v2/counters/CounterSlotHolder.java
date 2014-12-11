@@ -1,11 +1,8 @@
-package com.revizer.counters.services.counting.model;
+package com.revizer.counters.v2.counters;
 
-import com.codahale.metrics.Meter;
+import com.revizer.counters.v2.counters.metadata.AggregationCounterKey;
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -22,6 +19,9 @@ public class CounterSlotHolder {
         return slotHolder;
     }
 
+    /**
+     * Default constructor to build {@link com.revizer.counters.v2.counters.CounterSlotHolder} instances.
+     */
     public CounterSlotHolder() {
 
     }

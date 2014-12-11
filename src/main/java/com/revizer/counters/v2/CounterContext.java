@@ -1,10 +1,16 @@
 package com.revizer.counters.v2;
 
-import com.revizer.counters.v2.counters.TopicAggregationsHolder;
+import com.revizer.counters.v2.counters.CounterSlotHolder;
+import com.revizer.counters.v2.counters.metadata.TopicAggregationsMetadata;
+import com.revizer.counters.v2.metrics.MetricsService;
+import com.revizer.counters.v2.streaming.KafkaJsonMessageDecoder;
+import com.revizer.counters.v2.streaming.listeners.KafkaStreamListener;
 import org.apache.commons.configuration.Configuration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by alanl on 12/8/14.
@@ -14,20 +20,54 @@ public class CounterContext {
     private Configuration configuration;
     private List<String> brokers;
     private List<String> topicAndPartition;
-    private TopicAggregationsHolder topicAggregationsHolder;
+    private TopicAggregationsMetadata topicAggregationsMetadata;
 
-    public CounterContext(Configuration configuration) {
+    private MetricsService metricsService;
+    private KafkaJsonMessageDecoder decoder;
+    private List<KafkaStreamListener> listeners;
+
+    public CounterContext(Configuration configuration, MetricsService metricsService) {
         this.configuration = configuration;
         this.brokers = new ArrayList<>();
         this.topicAndPartition = new ArrayList<>();
+        this.metricsService = metricsService;
+        this.listeners = new ArrayList<>();
     }
 
-    public TopicAggregationsHolder getTopicAggregationsHolder() {
-        return topicAggregationsHolder;
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
     }
 
-    public void setTopicAggregationsHolder(TopicAggregationsHolder topicAggregationsHolder) {
-        this.topicAggregationsHolder = topicAggregationsHolder;
+    public KafkaJsonMessageDecoder getDecoder() {
+        return decoder;
+    }
+
+    public void setDecoder(KafkaJsonMessageDecoder decoder) {
+        this.decoder = decoder;
+    }
+
+    public List<KafkaStreamListener> getListeners() {
+        return listeners;
+    }
+
+    public void setListeners(List<KafkaStreamListener> listeners) {
+        this.listeners = listeners;
+    }
+
+    public MetricsService getMetricsService() {
+        return metricsService;
+    }
+
+    public void setMetricsService(MetricsService metricsService) {
+        this.metricsService = metricsService;
+    }
+
+    public TopicAggregationsMetadata getTopicAggregationsMetadata() {
+        return topicAggregationsMetadata;
+    }
+
+    public void setTopicAggregationsMetadata(TopicAggregationsMetadata topicAggregationsMetadata) {
+        this.topicAggregationsMetadata = topicAggregationsMetadata;
     }
 
     public Configuration getConfiguration() {

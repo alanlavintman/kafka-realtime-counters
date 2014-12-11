@@ -5,6 +5,7 @@ import com.google.common.base.Splitter;
 import com.google.common.primitives.Ints;
 import com.revizer.counters.services.counting.model.AggregationCounter;
 import org.apache.commons.configuration.Configuration;
+import org.slf4j.Logger;
 
 import java.util.*;
 
@@ -74,4 +75,9 @@ public class ConfigurationParser {
         }
         return counters;
     }
+
+    public static void printLine(Logger logger){
+        logger.info("------------------------------------------------------------------------------  ");
+    }
+
 }

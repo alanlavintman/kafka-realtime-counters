@@ -2,8 +2,11 @@ package com.revizer.counters.v2;
 
 import com.google.common.base.Preconditions;
 import com.revizer.counters.utils.ConfigurationParser;
-import com.revizer.counters.v2.counters.AggregationCounter;
-import com.revizer.counters.v2.counters.TopicAggregationsHolder;
+import com.revizer.counters.v2.counters.metadata.AggregationCounter;
+import com.revizer.counters.v2.counters.metadata.TopicAggregationsMetadata;
+import com.revizer.counters.v2.metrics.MetricsService;
+import com.revizer.counters.v2.streaming.KafkaJsonMessageDecoder;
+import com.revizer.counters.v2.streaming.listeners.CounterKafkaListener;
 import kafka.cluster.Broker;
 import kafka.utils.ZKStringSerializer;
 import kafka.utils.ZkUtils;
@@ -30,7 +33,12 @@ public class CounterContextConfiguration {
 
     public static CounterContext build(Configuration configuration){
 
-        CounterContext context = new CounterContext(configuration);
+        ConfigurationParser.printLine(logger);
+        logger.info("Starting the counting system configuration");
+        ConfigurationParser.printLine(logger);
+        /* Build the metrics service and append it to the counter context */
+        MetricsService metricsService = new MetricsService(configuration);
+        CounterContext context = new CounterContext(configuration, metricsService);
 
         /* Build the topic list and discard the ones that are not configured in the kafka server. */
         context = buildKafkaConfiguration(configuration, context);
@@ -38,12 +46,38 @@ public class CounterContextConfiguration {
         /* Build the aggregations object graph, filter the ones that do not belong to the topics that do not exists. */
         context = buildAggregationsGraph(configuration, context);
 
+        /* Configure listeners */
+        context = buildListenerHandlers(configuration, context);
+
+        /* Configure decoders */
+        context = buildMessageDecoder(configuration, context);
+
+        ConfigurationParser.printLine(logger);
+        logger.info("Counting system configuration finished successfully");
+        ConfigurationParser.printLine(logger);
+
         return context;
 
     }
 
+    private static CounterContext buildMessageDecoder(Configuration configuration, CounterContext context) {
+        logger.info("   Starting to build the Message decoder aggregations configuration");
+        context.setDecoder(new KafkaJsonMessageDecoder());
+        logger.info("   Message decoder configuration finished successfully.");
+        return context;
+    }
+
+    private static CounterContext buildListenerHandlers(Configuration configuration, CounterContext context) {
+        logger.info("   Starting to build the message listeners");
+        context.getListeners().add(new CounterKafkaListener("counter-listener",context));
+        logger.info("       CounterKafkaListener class registered");
+        logger.info("   Message listeners configuration finished successfully");
+        return context;
+    }
+
     private static CounterContext buildAggregationsGraph(Configuration configuration, CounterContext context) {
-        TopicAggregationsHolder topicAggregationsHolder = new TopicAggregationsHolder();
+        logger.info("   Starting to build the aggregations configuration");
+        TopicAggregationsMetadata topicAggregationsMetadata = new TopicAggregationsMetadata();
         Preconditions.checkArgument(context.getTopicAndPartition() != null, "There are no kafka topics that can match the configuration streaming.kafka.topics");
         Preconditions.checkArgument(context.getTopicAndPartition().size() > 0, "There are no kafka topics that can match the configuration streaming.kafka.topics");
 
@@ -52,26 +86,36 @@ public class CounterContextConfiguration {
 
             String[] topicNameArray = topicAndPartition.split(":");
             String topicName = topicNameArray[0];
+            logger.info("       Starting to configure aggregations for topic {}.", topicName);
+
+
+            /* Set up the topic time field and the total counter if needed */
             String timeField = configuration.getString("counters.topic.timefield." + topicName, "now");
             Boolean countTotal = configuration.getBoolean("counters.counter.total." + topicName, false);
-            topicAggregationsHolder.addNowField(topicName,timeField);
+            topicAggregationsMetadata.addNowField(topicName,timeField);
             if (countTotal == true){
-                topicAggregationsHolder.addTopicCountersTotal(topicName);
+                topicAggregationsMetadata.addTopicCountersTotal(topicName);
             }
 
+            /* Create a counter slot for the topic so we will be able to hold aggregations */
+            topicAggregationsMetadata.addTopicCounterSlotHolder(topicName);
+
+            /* Set up all the counters registered for the topic */
             String counterKey = "counters.counter." + topicName;
             List<String> aggregationKeys = ConfigurationParser.getKeysThatStartsWith(configuration, counterKey);
             List<AggregationCounter> aggregationCounters = new ArrayList<AggregationCounter>();
             for (String aggregationKey : aggregationKeys) {
-                String aggregationName = aggregationKey.substring(counterKey.length());
+                logger.info("           Registering aggregations {}.", aggregationKey);
+                String aggregationName = aggregationKey.substring(counterKey.length()+1);
                 String[] aggregationValue = configuration.getStringArray(aggregationKey);
                 AggregationCounter aggregation = new AggregationCounter(topicName, aggregationName, aggregationValue);
                 aggregationCounters.add(aggregation);
             }
-            topicAggregationsHolder.getTopicAggregations().put(topicName,aggregationCounters);
-        }
-        context.setTopicAggregationsHolder(topicAggregationsHolder);
+            topicAggregationsMetadata.getTopicAggregations().put(topicName, aggregationCounters);
 
+        }
+        context.setTopicAggregationsMetadata(topicAggregationsMetadata);
+        logger.info("   Aggregations configuration finished successfully.");
         return context;
     }
 
@@ -83,6 +127,7 @@ public class CounterContextConfiguration {
      * @return
      */
     private static CounterContext buildKafkaConfiguration(Configuration configuration, CounterContext context) {
+        logger.info("   Starting to build the kafka configuration");
         String zookeeperConnect = configuration.getString("streaming.kafka.zookeeper.connect");
         ZkClient zkClient = buildZkClient(zookeeperConnect);
 
@@ -95,13 +140,12 @@ public class CounterContextConfiguration {
         Iterator<Broker> brokerIterator = brokers.iterator();
         while (brokerIterator.hasNext()){
             Broker broker = brokerIterator.next();
-            logger.info("Registering Kafka Broker: {}", broker.getConnectionString());
+            logger.info("       Registering Kafka Broker: {}", broker.getConnectionString());
             context.getBrokers().add(broker.getConnectionString());
         }
 
         /* Build the topics configuration. */
         String[] configuredTopics = configuration.getStringArray("streaming.kafka.topics");
-        List<String> topicSkipList = new ArrayList<>();
         Seq<String> allKafkaTopics = ZkUtils.getAllTopics(zkClient);
         String[] allKafkaTopicsArray = new String[allKafkaTopics.size()];
         allKafkaTopics.copyToArray(allKafkaTopicsArray);
@@ -114,10 +158,11 @@ public class CounterContextConfiguration {
                     // Get the amount of partitions.
                     context.getTopicAndPartition().add(kafkaTopic);
                     found = true;
+                    logger.info("       Registering topic {}.", topicName);
                 }
             }
             if (!found){
-                topicSkipList.add(topicName);
+                logger.info("       Skipping topic {} because it was not found in kafka.", topicName);
             }
         }
 
@@ -125,9 +170,7 @@ public class CounterContextConfiguration {
             throw new RuntimeException("There are no kafka topics that can match the configuration streaming.kafka.topics=" + StringUtils.join(configuredTopics,","));
         }
 
-        for (String topicSkip : topicSkipList) {
-            logger.info("Does not exists in kafka, skipping topic: {}", topicSkip);
-        }
+        logger.info("   Kafka Configuration has finished successfully.");
 
         return context;
     }

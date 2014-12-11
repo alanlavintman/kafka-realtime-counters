@@ -1,10 +1,13 @@
 package com.revizer.counters.v2;
 
+import com.revizer.counters.utils.ConfigurationParser;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
 
 /**
  * Created by alanl on 12/4/14.
@@ -15,9 +18,14 @@ public class Main {
 
     public static void main(String[] args) {
 
+        ConfigurationParser.printLine(logger);
+        logger.info("   Starting Revizer real time counting system.                                 ");
+        ConfigurationParser.printLine(logger);
+
         try {
 
             Configuration configuration = new PropertiesConfiguration("rt.properties");
+            printProperties(configuration);
 
             CounterContext context = CounterContextConfiguration.build(configuration);
 
@@ -37,4 +45,17 @@ public class Main {
         }
 
     }
+
+    private static void printProperties(Configuration configuration) {
+        ConfigurationParser.printLine(logger);
+        logger.info("   Starting with properties:                                 ");
+        ConfigurationParser.printLine(logger);
+        Iterator<String> keys = configuration.getKeys();
+        while(keys.hasNext()){
+            String key = keys.next();
+            String value = configuration.getString(key);
+            logger.info("{}:{}",key, value);
+        }
+    }
+
 }

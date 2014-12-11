@@ -1,8 +1,10 @@
-package com.revizer.counters.services.metrics;
+package com.revizer.counters.v2.metrics;
 
 import com.codahale.metrics.*;
 import com.google.common.base.Preconditions;
 import org.apache.commons.configuration.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import static com.codahale.metrics.MetricRegistry.name;
@@ -18,20 +20,26 @@ public class MetricsService {
     public Configuration getConfiguration() {
         return configuration;
     }
+    private Logger logger = LoggerFactory.getLogger(MetricsService.class);
 
     public MetricsService(Configuration configuration) {
         Preconditions.checkNotNull(configuration, "The configuration parameter can not be null");
         this.configuration = configuration;
         registry = new MetricRegistry();
+
     }
 
     public void start(){
-        this.reporter = JmxReporter.forRegistry(this.registry).build();
-        this.reporter.start();
+        logger.info("Starting the metrics service.");
+        reporter = JmxReporter.forRegistry(registry).build();
+        reporter.start();
+        logger.info("Metrics service started correctly.");
     }
 
     public void stop(){
-        throw new NotImplementedException();
+        logger.info("Starting to shut down the metrics service");
+        reporter.stop();
+        logger.info("Metrics service has been shut down successfully");
     }
 
     public Counter createCounter(Class clz, String counterName){

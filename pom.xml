@@ -168,7 +168,7 @@
                             <mainClass>com.revizer.counters.Main</mainClass>
                         </transformer>
                     </transformers>
-                    <finalName>uber-${artifactId}-${version}</finalName>
+                    <finalName>rt-counters-${artifactId}-${version}</finalName>
                 </configuration>
             </plugin>
         </plugins>

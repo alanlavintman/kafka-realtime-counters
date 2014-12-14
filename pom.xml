@@ -41,7 +41,6 @@
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
             <version>3.3.4</version>
-
         </dependency>
 
         <!--

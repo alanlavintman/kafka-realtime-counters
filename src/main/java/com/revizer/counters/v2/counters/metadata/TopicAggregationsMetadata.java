@@ -46,8 +46,6 @@ public class TopicAggregationsMetadata {
         this.countersSlotHolderPerTopic = countersSlotHolderPerTopic;
     }
 
-
-
     public Map<String, Integer> getTopicStreamsMap() {
         return topicStreamsMap;
     }

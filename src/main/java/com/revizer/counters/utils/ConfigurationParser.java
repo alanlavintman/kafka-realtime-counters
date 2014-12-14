@@ -3,7 +3,6 @@ package com.revizer.counters.utils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.primitives.Ints;
-import com.revizer.counters.services.counting.model.AggregationCounter;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 
@@ -56,24 +55,6 @@ public class ConfigurationParser {
             }
         }
         return returnKeys;
-    }
-
-    public static Map<String, List<AggregationCounter>> getCountersByTopic(Configuration configuration) {
-        Map<String, List<AggregationCounter>> counters = new HashMap<String, List<AggregationCounter>>();
-        Map<String, Integer> topicAndNumOfStreams = getTopicAndNumOfStreams(configuration);
-        for (String topic : topicAndNumOfStreams.keySet()) {
-            List<AggregationCounter> counterList = new ArrayList<AggregationCounter>();
-            String keyRetrival = COUNTERS_CONFIGURATION_KEYS_STARTS_WITH.concat(topic).concat(".");
-            List<String> countersKeys = getKeysThatStartsWith(configuration, keyRetrival);
-            for (String counterKey : countersKeys) {
-                String counterName = counterKey.substring(keyRetrival.length());
-                String[] fields = configuration.getStringArray(counterKey);
-                AggregationCounter counter = new AggregationCounter(topic, counterName, fields);
-                counterList.add(counter);
-            }
-            counters.put(topic,counterList);
-        }
-        return counters;
     }
 
     public static void printLine(Logger logger){

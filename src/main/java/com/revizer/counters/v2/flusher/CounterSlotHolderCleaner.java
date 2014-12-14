@@ -1,8 +1,10 @@
-package com.revizer.counters.services.counting.cleaner;
+package com.revizer.counters.v2.flusher;
 
-import com.revizer.counters.services.counting.exceptions.CounterRepositoryException;
-import com.revizer.counters.services.counting.model.AggregationCounterKey;
-import com.revizer.counters.services.counting.model.CounterSlotHolder;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
+import com.revizer.counters.v2.CounterContext;
+import com.revizer.counters.v2.counters.CounterSlotHolder;
+import com.revizer.counters.v2.counters.metadata.AggregationCounterKey;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,9 @@ public class CounterSlotHolderCleaner implements Runnable {
     private int reciclePeriod;
     private int amountOfRetries;
     private CounterRepository repository;
+    private Meter errorMeter;
+    private Timer processingTime;
+
 
     public boolean isKeepRunning() {
         return keepRunning;
@@ -91,11 +96,13 @@ public class CounterSlotHolderCleaner implements Runnable {
         this.repository = repository;
     }
 
-    public CounterSlotHolderCleaner(String topic, CounterSlotHolder holder, Configuration configuration) {
+    public CounterSlotHolderCleaner(String topic, CounterSlotHolder holder, Configuration configuration, CounterContext context) {
         this.topic = topic;
         this.holder = holder;
         this.configuration = configuration;
         this.reciclePeriod = configuration.getInt("counter.cleaner.recicle.period.ms");
+        this.processingTime = context.getMetricsService().createTimer(CounterSlotHolderCleaner.class,"counters-flusher-processing-time");
+        this.errorMeter = context.getMetricsService().createMeter(CounterSlotHolderCleaner.class, "counters-flusher-error-meter");
     }
 
     @Override
@@ -141,12 +148,19 @@ public class CounterSlotHolderCleaner implements Runnable {
         /* If there is at least one slot, we try to persist it */
         if (slotKeyInMinute != null){
             ConcurrentHashMap<AggregationCounterKey, AtomicLong> olderSlot = holder.removeSlot(slotKeyInMinute);
+            Timer.Context time = null;
             try {
                 // Persist the data in cassandra.
+                time = this.processingTime.time();
                 repository.persist(topic, slotKeyInMinute, olderSlot);
                 persisted = true;
             } catch (CounterRepositoryException e) {
                 logger.error("Error while trying to store slot: {} and topic : {} in cassandra.", topic, e);
+                errorMeter.mark();
+            } finally{
+                if (time != null){
+                    time.stop();
+                }
             }
         }
         return persisted;

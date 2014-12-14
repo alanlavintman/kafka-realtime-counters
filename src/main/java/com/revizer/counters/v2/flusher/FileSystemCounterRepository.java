@@ -1,7 +1,6 @@
-package com.revizer.counters.services.counting.cleaner;
+package com.revizer.counters.v2.flusher;
 
-import com.revizer.counters.services.counting.exceptions.CounterRepositoryException;
-import com.revizer.counters.services.counting.model.AggregationCounterKey;
+import com.revizer.counters.v2.counters.metadata.AggregationCounterKey;
 import org.apache.commons.configuration.Configuration;
 
 import java.util.concurrent.ConcurrentHashMap;

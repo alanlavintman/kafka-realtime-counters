@@ -26,7 +26,7 @@ PRIMARY KEY((lookup_key,date),slot),
 It creates a table in the following shape:
 
  lookup_key | date | slot | value
-------------+------+------+-------
+ ------------+------+------+-------
 
 This schema will guarantee that the data will reside in one node for the lookup_key and the date specified and that you will be
 able to create range queries against the slot column. All the date for a specific lookup_key will be stored in the same node.

@@ -104,7 +104,7 @@ public class CounterSlotHolderCleaner implements Runnable {
         ConcurrentHashMap<AggregationCounterKey, AtomicLong> olderSlot = null;
         while(keepRunning){
             try {
-                this.flush();
+                this.flushWithRetry();
                 Thread.sleep(reciclePeriod);
             } catch (InterruptedException e) {
                 logger.error("There has been an interrupted exception for the counter slot holder cleaner in topic: {}", topic, e);
@@ -153,13 +153,15 @@ public class CounterSlotHolderCleaner implements Runnable {
         boolean persisted = false;
         Integer slotKeyInMinute = holder.getOlderSlotKey();
         /* If there is at least one slot, we try to persist it */
-        if (slotKeyInMinute != null){
+        if (slotKeyInMinute != null && slotKeyInMinute.intValue() != -1){
             ConcurrentHashMap<AggregationCounterKey, AtomicLong> olderSlot = holder.removeSlot(slotKeyInMinute);
             Timer.Context time = null;
             try {
                 // Persist the data in cassandra.
                 time = this.processingTime.time();
+                logger.debug("Starting to persist topic {} slotkey in minutes {}", topic, slotKeyInMinute);
                 repository.persist(topic, slotKeyInMinute, olderSlot);
+                logger.debug("Topic {} and slotkey in minutes {} persisted successfully", topic, slotKeyInMinute);
                 persisted = true;
             } catch (CounterRepositoryException e) {
                 logger.error("Error while trying to store slot: {} and topic : {} in cassandra.", topic, e);
@@ -169,6 +171,9 @@ public class CounterSlotHolderCleaner implements Runnable {
                     time.stop();
                 }
             }
+        } else {
+            logger.debug("The counter holder is empty for topic {}", topic);
+            persisted = true;
         }
         return persisted;
     }

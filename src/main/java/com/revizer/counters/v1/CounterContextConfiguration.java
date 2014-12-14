@@ -88,7 +88,6 @@ public class CounterContextConfiguration {
             String topicName = topicNameArray[0];
             logger.info("       Starting to configure aggregations for topic {}.", topicName);
 
-
             /* Set up the topic time field and the total counter if needed */
             String timeField = configuration.getString("counters.topic.timefield." + topicName, "now");
             Boolean countTotal = configuration.getBoolean("counters.counter.total." + topicName, false);
@@ -112,7 +111,6 @@ public class CounterContextConfiguration {
                 aggregationCounters.add(aggregation);
             }
             topicAggregationsMetadata.getTopicAggregations().put(topicName, aggregationCounters);
-
         }
         context.setTopicAggregationsMetadata(topicAggregationsMetadata);
         logger.info("   Aggregations configuration finished successfully.");
@@ -162,7 +160,7 @@ public class CounterContextConfiguration {
                 }
             }
             if (!found){
-                logger.info("       Skipping topic {} because it was not found in kafka.", topicName);
+                logger.error("       Skipping topic {} because it was not found in kafka.", topicName);
             }
         }
 

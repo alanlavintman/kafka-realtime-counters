@@ -67,7 +67,7 @@ public class CountingSystem {
         /* Holds the topics to a counter holder instance. */
         Map<String, CounterSlotHolder> countersSlotHolderPerTopic = context.getTopicAggregationsMetadata().getCountersSlotHolderPerTopic();
 
-        this.cleanerExecutor = Executors.newFixedThreadPool(countersSlotHolderPerTopic.size());
+        this.cleanerExecutor = Executors.newFixedThreadPool(countersSlotHolderPerTopic.size()+1);
 
         /* for each topic and counter holder, create a new thread. */
         for (Map.Entry<String, CounterSlotHolder> stringCounterSlotHolderEntry : countersSlotHolderPerTopic.entrySet()) {

@@ -1,5 +1,5 @@
-rt-counters
-===========
+Kafka/Cassandra Real Time Counters
+==================================
 
 This is a simple project that will allow you to easily set up a counting system having:
 
@@ -11,6 +11,7 @@ Cassandra Data Schema
 
 Before using it, please execute the script that resides in /src/main/resources/schema.cql
 
+```
 CREATE KEYSPACE counters WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };
 
 use counters;
@@ -22,6 +23,8 @@ CREATE TABLE time_series_minute (
     value counter,
 PRIMARY KEY((lookup_key,date),slot),
 ) WITH CLUSTERING ORDER BY (slot DESC);
+
+```
 
 It creates a table in the following shape:
 
@@ -39,8 +42,10 @@ Requirements:
 Git: Dont know what git is? Visit http://git-scm.com/
 Maven: Dont know what maven is? Visit http://maven.apache.org/
 
+```
 $ git clone https://github.com/alanlavintman/rt-counters.git
 $ mvn package
+```
 
 This will create an Uber jar that will be able to execute with a classic java jar command.
 You may need to pass the property file and the logger file as a command line argument.

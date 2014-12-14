@@ -1,11 +1,10 @@
-package com.revizer.counters.v2.metrics;
+package com.revizer.counters.v1.metrics;
 
 import com.codahale.metrics.*;
 import com.google.common.base.Preconditions;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import static com.codahale.metrics.MetricRegistry.name;
 

@@ -1,25 +1,21 @@
-package com.revizer.counters.v2.streaming;
+package com.revizer.counters.v1.streaming;
 
 import com.codahale.metrics.Meter;
 import com.revizer.counters.services.metrics.MetricsService;
 import com.revizer.counters.services.streaming.StreamServiceListener;
 import com.revizer.counters.services.streaming.exceptions.MessageDecoderException;
 import com.revizer.counters.services.streaming.exceptions.StreamServiceListenerException;
-import com.revizer.counters.v2.CounterContext;
-import com.revizer.counters.v2.streaming.listeners.KafkaStreamListener;
-import com.revizer.counters.v2.streaming.listeners.KafkaStreamListenerException;
+import com.revizer.counters.v1.CounterContext;
+import com.revizer.counters.v1.streaming.listeners.KafkaStreamListener;
+import com.revizer.counters.v1.streaming.listeners.KafkaStreamListenerException;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
-import kafka.message.MessageAndMetadata;
 import org.apache.commons.configuration.Configuration;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by alanl on 11/10/14.

@@ -1,4 +1,4 @@
-package com.revizer.counters.v2.counters.metadata;
+package com.revizer.counters.v1.counters.metadata;
 
 /**
  * Created by alanl on 11/11/14.

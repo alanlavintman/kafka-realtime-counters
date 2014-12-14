@@ -1,10 +1,10 @@
-package com.revizer.counters.v2.flusher;
+package com.revizer.counters.v1.flusher;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.ConstantReconnectionPolicy;
 import com.datastax.driver.core.policies.DowngradingConsistencyRetryPolicy;
 import com.datastax.driver.core.policies.RoundRobinPolicy;
-import com.revizer.counters.v2.counters.metadata.AggregationCounterKey;
+import com.revizer.counters.v1.counters.metadata.AggregationCounterKey;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

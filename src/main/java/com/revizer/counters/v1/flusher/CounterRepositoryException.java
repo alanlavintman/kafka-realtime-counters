@@ -1,11 +1,11 @@
-package com.revizer.counters.v2.streaming.listeners;
+package com.revizer.counters.v1.flusher;
 
 /**
- * Created by cloudera on 12/11/14.
+ * Created by cloudera on 12/14/14.
  */
-public class KafkaStreamListenerException extends Exception {
+public class CounterRepositoryException extends Exception {
 
-    public KafkaStreamListenerException() {
+    public CounterRepositoryException() {
         super();
     }
 
@@ -17,7 +17,7 @@ public class KafkaStreamListenerException extends Exception {
      * @param   message   the detail message. The detail message is saved for
      *          later retrieval by the {@link #getMessage()} method.
      */
-    public KafkaStreamListenerException(String message) {
+    public CounterRepositoryException(String message) {
         super(message);
     }
 
@@ -35,7 +35,7 @@ public class KafkaStreamListenerException extends Exception {
      *         unknown.)
      * @since  1.4
      */
-    public KafkaStreamListenerException(String message, Throwable cause) {
+    public CounterRepositoryException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -53,7 +53,7 @@ public class KafkaStreamListenerException extends Exception {
      *         unknown.)
      * @since  1.4
      */
-    public KafkaStreamListenerException(Throwable cause) {
+    public CounterRepositoryException(Throwable cause) {
         super(cause);
     }
 
@@ -71,7 +71,7 @@ public class KafkaStreamListenerException extends Exception {
      *                           be writable
      * @since 1.7
      */
-    protected KafkaStreamListenerException(String message, Throwable cause,
+    protected CounterRepositoryException(String message, Throwable cause,
                         boolean enableSuppression,
                         boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);

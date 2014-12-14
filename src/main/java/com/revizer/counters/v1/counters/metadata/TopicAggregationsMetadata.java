@@ -1,6 +1,6 @@
-package com.revizer.counters.v2.counters.metadata;
+package com.revizer.counters.v1.counters.metadata;
 
-import com.revizer.counters.v2.counters.CounterSlotHolder;
+import com.revizer.counters.v1.counters.CounterSlotHolder;
 
 import java.util.HashMap;
 import java.util.List;

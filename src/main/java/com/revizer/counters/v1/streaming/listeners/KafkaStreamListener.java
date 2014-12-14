@@ -1,6 +1,6 @@
-package com.revizer.counters.v2.streaming.listeners;
+package com.revizer.counters.v1.streaming.listeners;
 
-import com.revizer.counters.v2.CounterContext;
+import com.revizer.counters.v1.CounterContext;
 import org.codehaus.jackson.JsonNode;
 
 /**

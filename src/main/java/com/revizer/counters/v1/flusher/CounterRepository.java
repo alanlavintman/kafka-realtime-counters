@@ -1,6 +1,6 @@
-package com.revizer.counters.v2.flusher;
+package com.revizer.counters.v1.flusher;
 
-import com.revizer.counters.v2.counters.metadata.AggregationCounterKey;
+import com.revizer.counters.v1.counters.metadata.AggregationCounterKey;
 import org.apache.commons.configuration.Configuration;
 
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,6 +1,6 @@
-package com.revizer.counters.v2.counters;
+package com.revizer.counters.v1.counters;
 
-import com.revizer.counters.v2.counters.metadata.AggregationCounterKey;
+import com.revizer.counters.v1.counters.metadata.AggregationCounterKey;
 import org.joda.time.DateTime;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +20,7 @@ public class CounterSlotHolder {
     }
 
     /**
-     * Default constructor to build {@link com.revizer.counters.v2.counters.CounterSlotHolder} instances.
+     * Default constructor to build {@link com.revizer.counters.v1.counters.CounterSlotHolder} instances.
      */
     public CounterSlotHolder() {
 

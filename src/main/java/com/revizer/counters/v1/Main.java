@@ -1,4 +1,4 @@
-package com.revizer.counters.v2;
+package com.revizer.counters.v1;
 
 import com.revizer.counters.utils.ConfigurationParser;
 import org.apache.commons.configuration.Configuration;

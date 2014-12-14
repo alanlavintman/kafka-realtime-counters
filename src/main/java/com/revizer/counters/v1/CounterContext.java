@@ -1,16 +1,13 @@
-package com.revizer.counters.v2;
+package com.revizer.counters.v1;
 
-import com.revizer.counters.v2.counters.CounterSlotHolder;
-import com.revizer.counters.v2.counters.metadata.TopicAggregationsMetadata;
-import com.revizer.counters.v2.metrics.MetricsService;
-import com.revizer.counters.v2.streaming.KafkaJsonMessageDecoder;
-import com.revizer.counters.v2.streaming.listeners.KafkaStreamListener;
+import com.revizer.counters.v1.counters.metadata.TopicAggregationsMetadata;
+import com.revizer.counters.v1.metrics.MetricsService;
+import com.revizer.counters.v1.streaming.KafkaJsonMessageDecoder;
+import com.revizer.counters.v1.streaming.listeners.KafkaStreamListener;
 import org.apache.commons.configuration.Configuration;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by alanl on 12/8/14.

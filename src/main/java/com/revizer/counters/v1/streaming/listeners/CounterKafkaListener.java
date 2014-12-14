@@ -1,11 +1,11 @@
-package com.revizer.counters.v2.streaming.listeners;
+package com.revizer.counters.v1.streaming.listeners;
 
 import com.codahale.metrics.Meter;
-import com.revizer.counters.v2.CounterContext;
-import com.revizer.counters.v2.counters.CounterSlotHolder;
-import com.revizer.counters.v2.counters.metadata.AggregationCounter;
-import com.revizer.counters.v2.counters.metadata.AggregationCounterKey;
-import com.revizer.counters.v2.counters.metadata.TopicAggregationsMetadata;
+import com.revizer.counters.v1.CounterContext;
+import com.revizer.counters.v1.counters.CounterSlotHolder;
+import com.revizer.counters.v1.counters.metadata.AggregationCounter;
+import com.revizer.counters.v1.counters.metadata.AggregationCounterKey;
+import com.revizer.counters.v1.counters.metadata.TopicAggregationsMetadata;
 import org.codehaus.jackson.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Created by cloudera on 12/11/14.

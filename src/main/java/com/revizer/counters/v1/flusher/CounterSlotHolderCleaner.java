@@ -1,10 +1,10 @@
-package com.revizer.counters.v2.flusher;
+package com.revizer.counters.v1.flusher;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
-import com.revizer.counters.v2.CounterContext;
-import com.revizer.counters.v2.counters.CounterSlotHolder;
-import com.revizer.counters.v2.counters.metadata.AggregationCounterKey;
+import com.revizer.counters.v1.CounterContext;
+import com.revizer.counters.v1.counters.CounterSlotHolder;
+import com.revizer.counters.v1.counters.metadata.AggregationCounterKey;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

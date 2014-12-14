@@ -28,8 +28,12 @@ PRIMARY KEY((lookup_key,date),slot),
 
 It creates a table in the following shape:
 
+```
+
  lookup_key | date | slot | value
  ------------+------+------+-------
+
+ ```
 
 This schema will guarantee that the data will reside in one node for the lookup_key and the date specified and that you will be
 able to create range queries against the slot column. All the date for a specific lookup_key will be stored in the same node.
@@ -38,9 +42,9 @@ Get the source and Build it
 ===========================
 
 Requirements:
--------------
-Git: Dont know what git is? Visit http://git-scm.com/
-Maven: Dont know what maven is? Visit http://maven.apache.org/
+
+- Git: Dont know what git is? Visit http://git-scm.com/
+- Maven: Dont know what maven is? Visit http://maven.apache.org/
 
 ```
 $ git clone https://github.com/alanlavintman/rt-counters.git

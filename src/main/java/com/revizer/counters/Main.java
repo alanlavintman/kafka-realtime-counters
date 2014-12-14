@@ -1,6 +1,8 @@
-package com.revizer.counters.v1;
+package com.revizer.counters;
 
 import com.revizer.counters.utils.ConfigurationParser;
+import com.revizer.counters.v1.CounterContext;
+import com.revizer.counters.v1.CounterContextConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;

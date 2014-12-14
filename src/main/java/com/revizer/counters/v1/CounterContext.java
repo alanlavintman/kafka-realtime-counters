@@ -2,7 +2,7 @@ package com.revizer.counters.v1;
 
 import com.revizer.counters.v1.counters.metadata.TopicAggregationsMetadata;
 import com.revizer.counters.v1.metrics.MetricsService;
-import com.revizer.counters.v1.streaming.KafkaJsonMessageDecoder;
+import com.revizer.counters.v1.streaming.decoder.KafkaJsonMessageDecoder;
 import com.revizer.counters.v1.streaming.listeners.KafkaStreamListener;
 import org.apache.commons.configuration.Configuration;
 

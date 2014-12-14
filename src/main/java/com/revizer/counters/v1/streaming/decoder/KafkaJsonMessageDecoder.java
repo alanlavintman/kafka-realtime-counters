@@ -1,9 +1,5 @@
-package com.revizer.counters.v1.streaming;
+package com.revizer.counters.v1.streaming.decoder;
 
-import com.revizer.counters.services.metrics.MetricsService;
-import com.revizer.counters.services.streaming.exceptions.InitializeDecoderException;
-import com.revizer.counters.services.streaming.exceptions.MessageDecoderException;
-import com.revizer.counters.services.streaming.kafka.MessageDecoder;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 

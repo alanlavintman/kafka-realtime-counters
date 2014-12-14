@@ -1,11 +1,8 @@
 package com.revizer.counters.v1.streaming;
 
 import com.codahale.metrics.Meter;
-import com.revizer.counters.services.metrics.MetricsService;
-import com.revizer.counters.services.streaming.StreamServiceListener;
-import com.revizer.counters.services.streaming.exceptions.MessageDecoderException;
-import com.revizer.counters.services.streaming.exceptions.StreamServiceListenerException;
 import com.revizer.counters.v1.CounterContext;
+import com.revizer.counters.v1.streaming.decoder.MessageDecoderException;
 import com.revizer.counters.v1.streaming.listeners.KafkaStreamListener;
 import com.revizer.counters.v1.streaming.listeners.KafkaStreamListenerException;
 import kafka.consumer.ConsumerIterator;

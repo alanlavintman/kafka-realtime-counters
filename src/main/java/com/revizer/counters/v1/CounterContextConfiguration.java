@@ -5,7 +5,7 @@ import com.revizer.counters.utils.ConfigurationParser;
 import com.revizer.counters.v1.counters.metadata.AggregationCounter;
 import com.revizer.counters.v1.counters.metadata.TopicAggregationsMetadata;
 import com.revizer.counters.v1.metrics.MetricsService;
-import com.revizer.counters.v1.streaming.KafkaJsonMessageDecoder;
+import com.revizer.counters.v1.streaming.decoder.KafkaJsonMessageDecoder;
 import com.revizer.counters.v1.streaming.listeners.CounterKafkaListener;
 import kafka.cluster.Broker;
 import kafka.utils.ZKStringSerializer;

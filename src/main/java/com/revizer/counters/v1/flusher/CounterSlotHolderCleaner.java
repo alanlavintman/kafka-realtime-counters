@@ -22,11 +22,11 @@ public class CounterSlotHolderCleaner implements Runnable {
     private volatile boolean keepRunning = true;
     private String topic;
     private CounterSlotHolder holder;
-    private Configuration configuration;
     private Map<String, CounterSlotHolder> counterHolder = new HashMap<String, CounterSlotHolder>();
     private static Logger logger = LoggerFactory.getLogger(CounterSlotHolderCleaner.class);
     private int reciclePeriod;
     private int amountOfRetries;
+    private int recicleRetryCount;
     private CounterRepository repository;
     private Meter errorMeter;
     private Timer processingTime;
@@ -54,14 +54,6 @@ public class CounterSlotHolderCleaner implements Runnable {
 
     public void setHolder(CounterSlotHolder holder) {
         this.holder = holder;
-    }
-
-    public Configuration getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(Configuration configuration) {
-        this.configuration = configuration;
     }
 
     public Map<String, CounterSlotHolder> getCounterHolder() {
@@ -96,11 +88,11 @@ public class CounterSlotHolderCleaner implements Runnable {
         this.repository = repository;
     }
 
-    public CounterSlotHolderCleaner(String topic, CounterSlotHolder holder, Configuration configuration, CounterContext context) {
+    public CounterSlotHolderCleaner(String topic, CounterSlotHolder holder, CounterContext context) {
         this.topic = topic;
         this.holder = holder;
-        this.configuration = configuration;
-        this.reciclePeriod = configuration.getInt("counter.cleaner.recicle.period.ms");
+        this.reciclePeriod = context.getConfiguration().getInt("counter.cleaner.recicle.period.ms");
+        this.recicleRetryCount= context.getConfiguration().getInt("counter.cleaner.recicle.retry.count");
         this.processingTime = context.getMetricsService().createTimer(CounterSlotHolderCleaner.class,"counters-flusher-processing-time");
         this.errorMeter = context.getMetricsService().createMeter(CounterSlotHolderCleaner.class, "counters-flusher-error-meter");
     }
@@ -112,31 +104,46 @@ public class CounterSlotHolderCleaner implements Runnable {
         ConcurrentHashMap<AggregationCounterKey, AtomicLong> olderSlot = null;
         while(keepRunning){
             try {
-                Thread.sleep(reciclePeriod);
                 this.flush();
+                Thread.sleep(reciclePeriod);
             } catch (InterruptedException e) {
                 logger.error("There has been an interrupted exception for the counter slot holder cleaner in topic: {}", topic, e);
             }
         }
     }
 
+
+
     public void shutdown(){
+        logger.info("Starting to shut down the cleaner for topic {}.", topic);
         keepRunning=false;
         /* Clean all the holder size */
         while(holder.size() > 0){
-            if (!this.flush()){
-                // try to reflush it 3 times.
-                logger.info("Flusing failed, waiting 1 second and trying again for 3 times.");
-                for (int i=0;i<3;i++){
-                    try {
-                        logger.info("Flusing failed for {} time, waiting 1 second and trying again.", i);
-                        if (!this.flush()){
-                            Thread.sleep(1000);
-                        }
-                    } catch (InterruptedException e) {
-                        logger.error("There was an interrupted exception", e);
+            logger.info("Counter holder size for {} is {}.", topic, holder.size());
+            flushWithRetry();
+        }
+    }
+
+    public void flushWithRetry(){
+        if (!this.flush()){
+            // try to reflush it 3 times.
+            logger.error("Flusing failed, waiting 1 second and trying again for {} times.", this.recicleRetryCount);
+            boolean succeedRetry = false;
+            for (int i=0;i<this.recicleRetryCount;i++){
+                try {
+                    logger.info("Flusing failed for {} times, waiting 1 second and trying again.", i+1);
+                    if (!this.flush()){
+                        Thread.sleep(1000);
+                    } else {
+                        succeedRetry = true;
+                        break;
                     }
+                } catch (InterruptedException e) {
+                    logger.error("There was an interrupted exception", e);
                 }
+            }
+            if (!succeedRetry){
+                logger.error("The flush with retry for topic {} failed. Dropping the data.", this.topic);
             }
         }
     }

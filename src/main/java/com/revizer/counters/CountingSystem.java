@@ -1,8 +1,11 @@
-package com.revizer.counters.v1;
+package com.revizer.counters;
 
 import com.revizer.counters.utils.ConfigurationParser;
+import com.revizer.counters.v1.CounterContext;
+import com.revizer.counters.v1.counters.CounterSlotHolder;
+import com.revizer.counters.v1.flusher.CounterSlotHolderCleaner;
 import com.revizer.counters.v1.streaming.KafkaConsumerHandler;
-import com.revizer.counters.v1.streaming.KafkaJsonMessageDecoder;
+import com.revizer.counters.v1.streaming.decoder.KafkaJsonMessageDecoder;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
@@ -26,7 +29,8 @@ public class CountingSystem {
     private CounterContext context;
     private ConsumerConfig consumerConfig;
     private Map<String, Integer> topicStreamMap;
-    private ExecutorService executor = null;
+    private ExecutorService countersExecutor = null;
+    private ExecutorService cleanerExecutor = null;
     private ConsumerConnector consumer;
     private KafkaJsonMessageDecoder decoder;
     private int parallelism;
@@ -48,23 +52,50 @@ public class CountingSystem {
         /* Start the jmx metrics*/
         this.context.getMetricsService().start();
 
+        /* Start the cleaner process */
+        startCleanerThreads();
+
+        /* Start the streamer process */
+        startStreamingThreads();
+
+        logger.info("   Counting System started successfully.");
+        ConfigurationParser.printLine(logger);
+    }
+
+    private void startCleanerThreads() {
+        logger.info("       Starting the counters cleaner handlers.");
+        /* Holds the topics to a counter holder instance. */
+        Map<String, CounterSlotHolder> countersSlotHolderPerTopic = context.getTopicAggregationsMetadata().getCountersSlotHolderPerTopic();
+
+        this.cleanerExecutor = Executors.newFixedThreadPool(countersSlotHolderPerTopic.size());
+
+        /* for each topic and counter holder, create a new thread. */
+        for (Map.Entry<String, CounterSlotHolder> stringCounterSlotHolderEntry : countersSlotHolderPerTopic.entrySet()) {
+            String topic = stringCounterSlotHolderEntry.getKey();
+            CounterSlotHolderCleaner cleaner = new CounterSlotHolderCleaner(topic, stringCounterSlotHolderEntry.getValue(), this.context);
+            this.cleanerExecutor.submit(cleaner);
+            logger.info("           Counter cleaner registered for topic {}.",topic);
+        }
+
+        logger.info("       Counter cleaner handlers registered successfully.");
+    }
+
+    private void startStreamingThreads() {
         logger.info("       Starting the Consumer Handlers.");
         /* Fire all the threads according to the paralellism configured. */
         this.consumer = Consumer.createJavaConsumerConnector(consumerConfig);
-        this.executor = Executors.newFixedThreadPool(this.parallelism);
+        this.countersExecutor = Executors.newFixedThreadPool(this.parallelism);
         Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = consumer.createMessageStreams(topicStreamMap);
         int threadNumber = 0;
         for (String topic : messageStreams.keySet()) {
             List<KafkaStream<byte[], byte[]>> streamList = messageStreams.get(topic);
             for (KafkaStream<byte[], byte[]> stream : streamList) {
                 logger.info("       Registering handler for topic {} and thread number {}", topic, threadNumber);
-                executor.submit(new KafkaConsumerHandler(this.context, topic, stream, threadNumber));
+                countersExecutor.submit(new KafkaConsumerHandler(this.context, topic, stream, threadNumber));
                 threadNumber++;
             }
         }
         logger.info("       Consumer Handlers started successfully with a paralellism of {}.", this.parallelism);
-        ConfigurationParser.printLine(logger);
-        logger.info("   Counting System started successfully.");
         ConfigurationParser.printLine(logger);
     }
 
